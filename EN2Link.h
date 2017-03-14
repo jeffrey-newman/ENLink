@@ -22,13 +22,11 @@
 
 /**
  * Creates a new analysis. Each analysis has its own runtime loaded EN library.
- * @param opt_cfg_file
+ * @param opt_cfg_file The path of the file
  * @return A unique identifier for this analysis. Calls to this library use this identifier to get the cost, etc for the analysis intended.
  */
 DLLEXPORT int WINAPI
 createAnalysis(const char* opt_cfg_file);
-
-
 
 /**
  *
@@ -37,6 +35,16 @@ createAnalysis(const char* opt_cfg_file);
 DLLEXPORT int WINAPI
 getAnAnalysis();
 
+
+/**
+ *
+ * @param numberDVs
+ * @param lower_bounds
+ * @param upper_bounds
+ * @return an int error code. 0 means success
+ */
+DLLEXPORT int* WINAPI
+getDVBounds(int analysisID, int* numberDVs);
 
 /**
  *
@@ -73,6 +81,16 @@ getPressureConstraint(int analysisID);
  */
 DLLEXPORT double WINAPI
 getHeadConstraint(int analysisID);
+
+
+/**
+ *
+ * @param analysisID
+ * @return
+ */
+DLLEXPORT double WINAPI
+getVelocityConstraint(int analysisID);
+
 
 /**
  *

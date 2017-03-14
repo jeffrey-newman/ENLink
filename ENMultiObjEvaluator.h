@@ -199,9 +199,11 @@ public:
     virtual
     ~ENMultiObjEvaluator();
 
-
     void
     initialise(boost::filesystem::path config_file);
+
+    boost::shared_ptr<std::vector<int>  >
+    getPipeDVBounds();
 
     int
     runEN(const int* dvs);
@@ -214,6 +216,13 @@ public:
 
     double
     getMaxPressureViolation();
+
+    double
+    getSumVelocityViolation();
+
+    double
+    getMaxVelocityViolation();
+
 
 
 //    void

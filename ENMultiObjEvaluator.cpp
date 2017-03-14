@@ -677,6 +677,19 @@ net_present_value(double amount, int numYears, double rate)
 };
 
 
+boost::shared_ptr<std::vector<int> >
+ENMultiObjEvaluator::getPipeDVBounds()
+{
+    int numberDVs = params->pipe_availOpt_data.size();
+    boost::shared_ptr<std::vector<int> > dv_bounds(new std::vector<int>);
+    typedef std::pair<const std::string, std::vector<std::string> > PipeAvailOptionsPair;
+    BOOST_FOREACH(PipeAvailOptionsPair & pipe_options, params->pipe_availOpt_data)
+                {
+                    dv_bounds->push_back(pipe_options.second.size());
+                }
+    return (dv_bounds);
+};
+
 void
 ENMultiObjEvaluator::setPipeChoices(const int* dvs)
 {
@@ -1052,6 +1065,31 @@ ENMultiObjEvaluator::evalHydraulicConstraints()
     }
     while (timeStep > 0);
 
+}
+
+double ENMultiObjEvaluator::getCost()
+{
+    return 0;
+}
+
+double ENMultiObjEvaluator::getSumPressureViolation()
+{
+    return 0;
+}
+
+double ENMultiObjEvaluator::getMaxPressureViolation()
+{
+    return 0;
+}
+
+double ENMultiObjEvaluator::getSumVelocityViolation()
+{
+    return 0;
+}
+
+double ENMultiObjEvaluator::getMaxVelocityViolation()
+{
+    return 0;
 }
 
 ///**
