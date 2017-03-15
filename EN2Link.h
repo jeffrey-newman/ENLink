@@ -62,17 +62,7 @@ runEN(int analysisID, const int* decision_variables);
  * @return
  */
 DLLEXPORT double WINAPI
-getCost(int analysisID);
-
-
-/**
- *
- * @param analysisID
- * @return
- */
-DLLEXPORT double WINAPI
-getPressureConstraint(int analysisID);
-
+getPipeCapitalCost(int analysisID);
 
 /**
  *
@@ -80,8 +70,7 @@ getPressureConstraint(int analysisID);
  * @return
  */
 DLLEXPORT double WINAPI
-getHeadConstraint(int analysisID);
-
+getSumPressureTooHigh(int analysisID);
 
 /**
  *
@@ -89,7 +78,71 @@ getHeadConstraint(int analysisID);
  * @return
  */
 DLLEXPORT double WINAPI
-getVelocityConstraint(int analysisID);
+getMaxPressureTooHigh(int analysisID);
+
+/**
+ *
+ * @param analysisID
+ * @return
+ */
+DLLEXPORT double WINAPI
+getSumPressureTooLow(int analysisID);
+
+/**
+ *
+ * @param analysisID
+ * @return
+ */
+DLLEXPORT double WINAPI
+getMinPressureTooLow(int analysisID);
+
+/**
+ *
+ * @param analysisID
+ * @return
+ */
+DLLEXPORT double WINAPI
+getSumHeadTooHigh(int analysisID);
+
+/**
+ *
+ * @param analysisID
+ * @return
+ */
+DLLEXPORT double WINAPI
+getMaxHeadTooHigh(int analysisID);
+
+/**
+ *
+ * @param analysisID
+ * @return
+ */
+DLLEXPORT double WINAPI
+getSumHeadTooLow(int analysisID);
+
+/**
+ *
+ * @param analysisID
+ * @return
+ */
+DLLEXPORT double WINAPI
+getMinHeadTooLow(int analysisID);
+
+/**
+ *
+ * @param analysisID
+ * @return
+ */
+DLLEXPORT double WINAPI
+getSumVelocityTooHigh(int analysisID);
+
+/**
+ *
+ * @param analysisID
+ * @return
+ */
+DLLEXPORT double WINAPI
+getMaxVelocityTooHigh(int analysisID);
 
 
 /**

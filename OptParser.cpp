@@ -127,11 +127,18 @@ OptFileParser::init() {
     isHeadConstraint_rule = no_case[lit("Head")[_val = true]];
     isVelocityConstraint_rule = no_case[lit("Velocity")[_val = true]];
     en_inp_rule =
-            lit("EpanetFile")
+            lit("EpanetFile:")
                     >> lexeme['\"' >> +(char_ - '\"') >> '\"' /*>> *(space - eol) >> eol*/]
                        - headers;
+
+//    working_dir_rule =
+//            lit("EpanetDylibLoc")
+//                    >> lexeme['\"' >> +(char_ - '\"') >> '\"' /*>> *(space - eol) >> eol*/]
+//                       - headers;
+
+
     iuwmod_inp_rule =
-            lit("IUWModFile")
+            lit("IUWModFile:")
                     >> lexeme['\"' >> +(char_ - '\"') >> '\"' /*>> *(space - eol) >> eol*/]
                        - headers;
 
@@ -595,10 +602,10 @@ operator<<(std::ostream &os, const OptData &optdata) {
     if (optdata.isVelocityConstraint) os << "Velocity" << "\t";
     os << std::endl;
     if (!(optdata.epanetFile.empty()))
-        os << "EpanetFile" << "\t\""
+        os << "EpanetFile:" << "\t\""
            << optdata.epanetFile << "\"\t" << std::endl;
     if (!(optdata.iuwmodFile.empty()))
-        os << "IUWModFile" << "\t\""
+        os << "IUWModFile:" << "\t\""
            << optdata.iuwmodFile << "\"\t" << std::endl;
     os << std::endl << std::endl;
 

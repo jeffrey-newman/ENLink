@@ -17,7 +17,13 @@
 struct AnalysisData
 {
     AnalysisData(boost::shared_ptr<ENMultiObjEvaluator> _evaluator)
-            : evaluator(_evaluator), is_in_use(true), num_dvs(0), num_dv_options(boost::shared_ptr<std::vector<int> >(new std::vector<int>))
+            : evaluator(_evaluator), is_in_use(true), num_dvs(0), num_dv_options(new std::vector<int>)
+    {
+
+    }
+
+    AnalysisData()
+            : evaluator(nullptr), is_in_use(false), num_dvs(0), num_dv_options(nullptr)
     {
 
     }
@@ -64,28 +70,75 @@ getDVBounds(int analysisID, int* numberDVs)
 int runEN(int analysisID, const int *decision_variables)
 {
     AnalysisData & analysis = analysis_map[analysisID];
-
     return( analysis.evaluator->runEN(decision_variables));
 }
 
-double getCost(int analysisID)
+double getPipeCapitalCost(int analysisID)
 {
-//    return(analysis_map[analysisID].first->evalCost());
-    return 0;
+    AnalysisData & analysis = analysis_map[analysisID];
+    return( analysis.evaluator->getPipeCapitalCost());
 }
 
-double getPressureConstraint(int analysisID)
+double getSumPressureTooHigh(int analysisID)
 {
-//    analysis_map[analysisID].first->evalPressurePenalty(results);
-//    return results.
-    return 0;
+    AnalysisData & analysis = analysis_map[analysisID];
+    return( analysis.evaluator->getSumPressureTooHigh());
 }
 
-double getHeadConstraint(int analysisID)
+double getMaxPressureTooHigh(int analysisID)
 {
-//    return(analysis_map[analysisID].first->evalHeadPenalty());
-    return 0;
+    AnalysisData & analysis = analysis_map[analysisID];
+    return( analysis.evaluator->getMaxPressureTooHigh());
 }
+
+double getSumPressureTooLow(int analysisID)
+{
+    AnalysisData & analysis = analysis_map[analysisID];
+    return( analysis.evaluator->getSumPressureTooLow());
+}
+
+double getMinPressureTooLow(int analysisID)
+{
+    AnalysisData & analysis = analysis_map[analysisID];
+    return( analysis.evaluator->getMinPressureTooLow());
+}
+
+double getSumHeadTooHigh(int analysisID)
+{
+    AnalysisData & analysis = analysis_map[analysisID];
+    return( analysis.evaluator->getSumHeadTooHigh());
+}
+
+double getMaxHeadTooHigh(int analysisID)
+{
+    AnalysisData & analysis = analysis_map[analysisID];
+    return( analysis.evaluator->getMaxHeadTooHigh());
+}
+
+double getSumHeadTooLow(int analysisID)
+{
+    AnalysisData & analysis = analysis_map[analysisID];
+    return( analysis.evaluator->getSumHeadTooLow());
+}
+
+double getMinHeadTooLow(int analysisID)
+{
+    AnalysisData & analysis = analysis_map[analysisID];
+    return( analysis.evaluator->getMinHeadTooLow());
+}
+
+double getSumVelocityTooHigh(int analysisID)
+{
+    AnalysisData & analysis = analysis_map[analysisID];
+    return( analysis.evaluator->getSumVelocityTooHigh());
+}
+
+double getMaxVelocityTooHigh(int analysisID)
+{
+    AnalysisData & analysis = analysis_map[analysisID];
+    return( analysis.evaluator->getMaxVelocityTooHigh());
+}
+
 
 double getResilience(int analysisID)
 {
@@ -94,7 +147,8 @@ double getResilience(int analysisID)
 
 void handBackAnalysis(int analysisID)
 {
-    analysis_map[analysisID].second = false;
+    AnalysisData & analysis = analysis_map[analysisID];
+    analysis.is_in_use = false;
 }
 
 int clear(int analysisID)
@@ -108,3 +162,20 @@ int clearAll()
     analysis_map.clear();
     return 0;
 }
+
+int getAnAnalysis()
+{
+    typedef std::pair<const int, AnalysisData> AnalysisDatum;
+    BOOST_FOREACH(AnalysisDatum & analysis, analysis_map)
+                {
+                    if (analysis.second.is_in_use == false)
+                    {
+                        analysis.second.is_in_use = true;
+                        return  analysis.first;
+                    }
+
+                }
+    return -1;
+}
+
+

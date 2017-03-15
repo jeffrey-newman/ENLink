@@ -133,11 +133,16 @@ struct TankResultsInfo
 struct Results
 {
     Results() :
-            penaltyPressureTooHigh(0), //
-            penaltyPressureTooLow(0), //
-            penaltyHeadTooHigh(0), //
-            penaltyHeadTooLow(0), //
-            penaltyVelocity(0),
+            maxPressureTooHigh(0), //
+            minPressureTooLow(0), //
+            maxHeadTooHigh(0), //
+            minHeadTooLow(0), //
+            maxVelocityTooHigh(0),
+            sumPressureTooHigh(0), //
+            sumPressureTooLow(0), //
+            sumHeadTooHigh(0), //
+            sumHeadTooLow(0), //
+            sumVelocityTooHigh(0),
             costPipes(0), //
             pipeRepairCost(0), //
             pipeCapitalCost(0), //
@@ -152,11 +157,18 @@ struct Results
 
     }
 
-    double penaltyPressureTooHigh; /**< */
-    double penaltyPressureTooLow; /**< */
-    double penaltyHeadTooHigh; /**< */
-    double penaltyHeadTooLow; /**< */
-    double penaltyVelocity; /**< */
+    double maxPressureTooHigh; /**< */
+    double minPressureTooLow; /**< */
+    double maxHeadTooHigh; /**< */
+    double minHeadTooLow; /**< */
+    double maxVelocityTooHigh; /**< */
+
+    double sumPressureTooHigh; /**< */
+    double sumPressureTooLow; /**< */
+    double sumHeadTooHigh; /**< */
+    double sumHeadTooLow; /**< */
+    double sumVelocityTooHigh; /**< */
+
     std::string penaltyPresLoc;
     std::string penaltyHeadLoc;
     std::string penaltyVelLoc;
@@ -209,19 +221,37 @@ public:
     runEN(const int* dvs);
 
     double
-    getCost();
+    getPipeCapitalCost();
 
     double
-    getSumPressureViolation();
+    getSumPressureTooHigh();
 
     double
-    getMaxPressureViolation();
+    getMaxPressureTooHigh();
 
     double
-    getSumVelocityViolation();
+    getSumPressureTooLow();
 
     double
-    getMaxVelocityViolation();
+    getMinPressureTooLow();
+
+    double
+    getSumHeadTooHigh();
+
+    double
+    getMaxHeadTooHigh();
+
+    double
+    getSumHeadTooLow();
+
+    double
+    getMinHeadTooLow();
+
+    double
+    getSumVelocityTooHigh();
+
+    double
+    getMaxVelocityTooHigh();
 
 
 
@@ -339,7 +369,7 @@ private:
     boost::scoped_array< char > binaryFile_cstr;
     unsigned dlOpenCount;
 
-    bool initParams;
+//    bool initParams;
     boost::filesystem::path orig_opt_file_path;
     std::string epanet_dylib_loc; /**< The system path to the location of the epanet shared library **/
     boost::filesystem::path epanet_dylib_path;

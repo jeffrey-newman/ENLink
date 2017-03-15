@@ -3,7 +3,7 @@ project(EN2Link)
 
 set(CMAKE_CXX_STANDARD 11)
 
-FIND_PACKAGE(Boost 1.40 REQUIRED COMPONENTS filesystem system)
+FIND_PACKAGE(Boost 1.40 REQUIRED COMPONENTS filesystem system program_options timer)
 
 include_directories(${Boost_INCLUDE_DIRS})
 
@@ -18,3 +18,4 @@ set(SOURCE_FILES
 add_library(EN2Link SHARED ${SOURCE_FILES})
 TARGET_LINK_LIBRARIES(EN2Link ${Boost_LIBRARIES})
 
+add_subdirectory(tests)

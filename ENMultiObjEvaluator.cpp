@@ -136,7 +136,10 @@ ENMultiObjEvaluator::ENMultiObjEvaluator()
 
 ENMultiObjEvaluator::~ENMultiObjEvaluator()
 {
-
+    // Close Ratings library
+    if (dlclose(en_lib_handle) != 0) {
+        printf("[%s] Problem closing library: %s", __FILE__, dlerror());
+    }
 }
 
 void
@@ -144,8 +147,8 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
 {
     namespace fs = boost::filesystem;
 
-    if (initParams)
-    {
+//    if (initParams)
+//    {
         //copy the params to the working directory.
         // Transfer a copy of the opt cfg file to the working directory...
 //        fs::path working_opt_path = this->workingDir
@@ -159,43 +162,44 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
         ENFile = params->epanetFile;
         epanet_dylib_loc = params->epanet_dylib_loc;
 
-    }
+//    }
 
 
 
-    if (!fs::exists(this->outputDir))
-    {
-        if (!fs::create_directory(this->outputDir))
-        {
-            std::string err = "Unable to create EN working directory: "
-                              + this->outputDir.string();
-            throw std::runtime_error(err);
-        }
-    }
-
-    if (!fs::exists(this->workingDir))
-    {
-        if (!fs::create_directory(this->workingDir))
-        {
-            std::string err = "Unable to create EN working directory: "
-                              + this->workingDir.string();
-            throw std::runtime_error(err);
-        }
-    }
+//    if (!fs::exists(this->outputDir))
+//    {
+//        if (!fs::create_directories(this->outputDir))
+//        {
+//            std::string err = "Unable to create EN working directory: "
+//                              + this->outputDir.string();
+//            throw std::runtime_error(err);
+//        }
+//    }
+//
+//    if (!fs::exists(this->workingDir))
+//    {
+//        if (!fs::create_directories(this->workingDir))
+//        {
+//            std::string err = "Unable to create EN working directory: "
+//                              + this->workingDir.string();
+//            throw std::runtime_error(err);
+//        }
+//    }
 
 
 
     //Work out the location for the error log.
-    fs::path en_err_logLoc = this->workingDir / epanet_error_log_name;
+//    fs::path en_err_logLoc = this->workingDir / epanet_error_log_name;
 
-    err_out.open(en_err_logLoc.c_str(),
+    err_out.open("en2_err.log",
                  std::ios_base::out | std::ios_base::app);
 
     if (!err_out.is_open())
     {
         std::string err = "Unable to open epanet error log file."
-                                  " Check location: " + en_err_logLoc.string();
+                                  " Check location";
         std::cerr << err << std::endl;
+        std::cout << dlerror() << std::endl;
         throw std::runtime_error(err);
 
     }
@@ -905,6 +909,11 @@ ENMultiObjEvaluator::evalPressurePenalty()
     PressureConstraintsT::iterator end =
             params->pressure_constraints.end();
 
+    double maxDeviationHigh = 0;
+    double maxDeviationLow = 0;
+    double sumDeviationHigh = 0;
+    double sumDeviationLow = 0;
+
     for (; pConstraint != end; ++pConstraint)
     {
         //std::cout << "Junction: \"" << Pressures(pConstraint).id << "\"" << std::endl;
@@ -915,18 +924,31 @@ ENMultiObjEvaluator::evalPressurePenalty()
                                EN_PRESSURE, &pressure), Pressures(pConstraint).id);
         if ((pressure) < Pressures(pConstraint).minPressure)
         {
-            results.penaltyPressureTooLow +=
-                    (Pressures(pConstraint).minPressure - pressure);
+            double deviationLow = (Pressures(pConstraint).minPressure - pressure);
+            sumDeviationLow += deviationLow;
+            if (deviationLow < maxDeviationLow)
+                maxDeviationLow = deviationLow;
+
+//            results.minPressureTooLow +=
+//                    (Pressures(pConstraint).minPressure - pressure);
 
         }
         if ((pressure) > Pressures(pConstraint).maxPressure)
         {
-
-            results.penaltyPressureTooHigh += (pressure
-                                               - Pressures(pConstraint).maxPressure);
+            double deviationHigh = pressure - Pressures(pConstraint).maxPressure;
+            sumDeviationHigh += deviationHigh;
+            if (deviationHigh > maxDeviationHigh)
+                maxDeviationHigh = deviationHigh;
+//            results.maxPessureTooHigh += (pressure
+//                                               - Pressures(pConstraint).maxPressure);
 
         }
     }
+
+    results.minPressureTooLow = maxDeviationLow;
+    results.maxPressureTooHigh = maxDeviationHigh;
+    results.sumPressureTooLow = sumDeviationLow;
+    results.sumPressureTooHigh = sumDeviationHigh;
 }
 
 
@@ -940,33 +962,11 @@ ENMultiObjEvaluator::evalHeadPenalty()
             params->head_constraints.begin();
     PressureConstraintsT::iterator end = params->head_constraints.end();
 
-    // Code for the net pressure deviation
-    //        for (; hConstraint != end; ++hConstraint)
-    //        {
-    //            //std::cout << "Junction: \"" << Pressures(pConstraint).id << "\"" << std::endl;
-    //            //std::cout << "ID: \"" << nodeIndices[Pressures(pConstraint).id] << "\"" << std::endl;
-    //
-    //
-    //            this->errors(ENgetnodevalue(nodeIndices[Heads(hConstraint).id],
-    //                            EN_HEAD, &head), Heads(hConstraint).id);
-    //            if (head < Heads(hConstraint).minHead)
-    //            {
-    //                results.penaltyHeadTooLow
-    //                                += (Heads(hConstraint).minHead - head);
-    //
-    //            }
-    //            if (head > Heads(hConstraint).maxHead)
-    //            {
-    //
-    //                results.penaltyHeadTooHigh += (head
-    //                                - Heads(hConstraint).maxHead);
-    //
-    //            }
-    //        }
-
-    // Code for the maximum pressure deviation
     double maxDeviationHigh = 0;
     double maxDeviationLow = 0;
+    double sumDeviationHigh = 0;
+    double sumDeviationLow = 0;
+
     for (; hConstraint != end; ++hConstraint)
     {
         //std::cout << "Junction: \"" << Pressures(pConstraint).id << "\"" << std::endl;
@@ -986,6 +986,7 @@ ENMultiObjEvaluator::evalHeadPenalty()
         if (head < Heads(hConstraint).minHead)
         {
             double deviationLow = Heads(hConstraint).minHead - head;
+            sumDeviationLow += deviationLow;
             if (deviationLow > maxDeviationLow)
                 maxDeviationLow = deviationLow;
 
@@ -993,12 +994,16 @@ ENMultiObjEvaluator::evalHeadPenalty()
         if (head > Heads(hConstraint).maxHead)
         {
             double deviationHigh = head - Heads(hConstraint).maxHead;
+            sumDeviationHigh += deviationHigh;
             if (deviationHigh > maxDeviationHigh)
                 maxDeviationHigh = deviationHigh;
         }
     }
-    results.penaltyHeadTooLow = maxDeviationLow;
-    results.penaltyHeadTooHigh = maxDeviationHigh;
+
+    results.minHeadTooLow = maxDeviationLow;
+    results.maxHeadTooHigh = maxDeviationHigh;
+    results.sumHeadTooLow = sumDeviationLow;
+    results.sumHeadTooHigh = sumDeviationHigh;
 }
 
 
@@ -1014,6 +1019,9 @@ ENMultiObjEvaluator::evalVelocityPenalty()
     VelocityConstraintsT::iterator end =
             params->velocity_constraints.end();
 
+    double maxDeviationHigh = 0;
+    double sumDeviationHigh = 0;
+
     for (; vConstraint != end; ++vConstraint)
     {
         //std::cout << "Link: \"" << Velocities(vConstraint).id << "\"" << std::endl;
@@ -1024,11 +1032,18 @@ ENMultiObjEvaluator::evalVelocityPenalty()
                                EN_VELOCITY, &velocity), Velocities(vConstraint).id);
         if (velocity > Velocities(vConstraint).maxVelocity)
         {
-            results.penaltyVelocity += (velocity
-                                        - Velocities(vConstraint).maxVelocity);
+            double deviationHigh = velocity
+                                   - Velocities(vConstraint).maxVelocity;
+            sumDeviationHigh += deviationHigh;
+            if (deviationHigh > maxDeviationHigh)
+                maxDeviationHigh = deviationHigh;
+//            results.maxVelocityTooHigh += (velocity
+//                                        - Velocities(vConstraint).maxVelocity);
             //* params->VelocityPenalty;
         }
     }
+    results.sumVelocityTooHigh = sumDeviationHigh;
+    results.maxVelocityTooHigh = maxDeviationHigh;
 }
 ;
 
@@ -1037,11 +1052,16 @@ ENMultiObjEvaluator::evalHydraulicConstraints()
 {
     //std::cout << "evaluating..." << std::endl;
 
-    results.penaltyPressureTooHigh = 0;
-    results.penaltyPressureTooLow = 0;
-    results.penaltyHeadTooHigh = 0;
-    results.penaltyHeadTooLow = 0;
-    results.penaltyVelocity = 0;
+    results.sumPressureTooLow = 0;
+    results.sumPressureTooHigh = 0;
+    results.maxPressureTooHigh = 0;
+    results.minPressureTooLow = 0;
+    results.sumHeadTooHigh = 0;
+    results.sumHeadTooLow = 0;
+    results.maxHeadTooHigh = 0;
+    results.minHeadTooLow = 0;
+    results.maxVelocityTooHigh = 0;
+    results.sumVelocityTooHigh = 0;
     long time;
     long timeStep;
 
@@ -1067,30 +1087,62 @@ ENMultiObjEvaluator::evalHydraulicConstraints()
 
 }
 
-double ENMultiObjEvaluator::getCost()
+double ENMultiObjEvaluator::getPipeCapitalCost()
 {
-    return 0;
+    return this->results.pipeCapitalCost;
 }
 
-double ENMultiObjEvaluator::getSumPressureViolation()
+double ENMultiObjEvaluator::getSumPressureTooHigh()
 {
-    return 0;
+    return this->results.sumPressureTooHigh;
 }
 
-double ENMultiObjEvaluator::getMaxPressureViolation()
+double ENMultiObjEvaluator::getMaxPressureTooHigh()
 {
-    return 0;
+    return this->results.maxPressureTooHigh;
 }
 
-double ENMultiObjEvaluator::getSumVelocityViolation()
+double ENMultiObjEvaluator::getSumPressureTooLow()
 {
-    return 0;
+    return this->results.sumPressureTooLow;
 }
 
-double ENMultiObjEvaluator::getMaxVelocityViolation()
+double ENMultiObjEvaluator::getMinPressureTooLow()
 {
-    return 0;
+    return this->results.minPressureTooLow;
 }
+
+double ENMultiObjEvaluator::getSumHeadTooHigh()
+{
+    return this->results.sumHeadTooHigh;
+}
+
+double ENMultiObjEvaluator::getMaxHeadTooHigh()
+{
+    return this->results.maxHeadTooHigh;
+}
+
+double ENMultiObjEvaluator::getSumHeadTooLow()
+{
+    return this->results.sumHeadTooLow;
+}
+
+double ENMultiObjEvaluator::getMinHeadTooLow()
+{
+    return this->results.minHeadTooLow;
+}
+
+double ENMultiObjEvaluator::getSumVelocityTooHigh()
+{
+    return this->results.sumVelocityTooHigh;
+}
+
+double ENMultiObjEvaluator::getMaxVelocityTooHigh()
+{
+    return this->results.maxVelocityTooHigh;
+}
+
+
 
 ///**
 // * hydraulic solver must be run before doing this....
