@@ -224,18 +224,16 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
         throw std::runtime_error(err);
     }
 
-    ENopen = (int
-    (*)(char *, char *, char *)) dlsym(en_lib_handle, "ENopen"); //
-    if(            !ENopen)
+    ENopen = (int (*)(char *, char *, char *)) dlsym(en_lib_handle, "ENopen"); //
+    if(!ENopen)
     {
         std::string err = "Unable to find ENopen function in epanet library";
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
 
-    ENopenH = (int
-    (*)(void)) dlsym(en_lib_handle, "ENopenH"); //
-    if(            !ENopenH)
+    ENopenH = (int (*)(void)) dlsym(en_lib_handle, "ENopenH"); //
+    if(!ENopenH)
     {
 
         std::string err = "Unable to find ENOpenH function in epanet library";
@@ -243,11 +241,50 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
         throw std::runtime_error(err);
     }
 
-    ENgetlinkindex = (int
-    (*)(char *, int*)) dlsym(en_lib_handle, "ENgetlinkindex");if
-            (            !ENgetlinkindex)
+    ENgetlinkindex = (int (*)(char *, int*)) dlsym(en_lib_handle, "ENgetlinkindex");
+    if(!ENgetlinkindex)
     {
         std::string err = "Unable to find ENgetlinkindex function in epanet library";
+        std::cerr << err << std::endl;
+        throw std::runtime_error(err);
+    }
+
+    ENgetlinkid = (int (*)(int, char*)) dlsym(en_lib_handle, "ENgetlinkid");
+    if (!ENgetlinkid)
+    {
+        std::string err = "Unable to find ENgetlinkid function in epanet library";
+        std::cerr << err << std::endl;
+        throw std::runtime_error(err);
+    }
+
+    ENgetlinktype = (int (*)(int, int*)) dlsym(en_lib_handle, "ENgetlinktype");if
+            (            !ENgetlinktype)
+    {
+        std::string err = "Unable to find ENgetlinktype function in epanet library";
+        std::cerr << err << std::endl;
+        throw std::runtime_error(err);
+    }
+
+    ENgetlinknodes = (int(*)(int, int*, int*)) dlsym(en_lib_handle, "ENgetlinknodes");
+    if (!ENgetlinknodes)
+    {
+        std::string err = "Unable to find ENgetlinknodes function in epanet library";
+        std::cerr << err << std::endl;
+        throw std::runtime_error(err);
+    }
+
+    ENgetlinkvalue = (int (*)(int, int, float *)) dlsym(en_lib_handle, "ENgetlinkvalue");
+    if(!ENgetlinkvalue)
+    {
+        std::string err = "Unable to find ENgetlinkvalue function in epanet library";
+        std::cerr << err << std::endl;
+        throw std::runtime_error(err);
+    }
+
+    ENsetlinkvalue = (int(*)(int, int, float)) dlsym(en_lib_handle, "ENsetlinkvalue");
+    if (!ENsetlinkvalue)
+    {
+        std::string err = "Unable to find ENsetlinkvalue function in epanet library";
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
@@ -261,23 +298,6 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
         throw std::runtime_error(err);
     }
 
-    ENsetlinkvalue = (int
-    (*)(int, int, float)) dlsym(en_lib_handle, "ENsetlinkvalue");if
-            (            !ENsetlinkvalue)
-    {
-        std::string err = "Unable to find ENsetlinkvalue function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-
-    ENgetlinkvalue = (int
-    (*)(int, int, float *)) dlsym(en_lib_handle, "ENgetlinkvalue");if
-            (            !ENgetlinkvalue)
-    {
-        std::string err = "Unable to find ENgetlinkvalue function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
 
     ENgetnodevalue = (int
     (*)(int, int, float *)) dlsym(en_lib_handle, "ENgetnodevalue");if
@@ -288,14 +308,32 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
         throw std::runtime_error(err);
     }
 
-    ENgetlinknodes = (int
-    (*)(int, int*, int*)) dlsym(en_lib_handle, "ENgetlinknodes");if
-            (            !ENgetlinknodes)
+    ENgetnodeid = (int (*) (int, char*)) dlsym(en_lib_handle, "ENgetnodeid");
+    if (!ENgetnodeid)
     {
-        std::string err = "Unable to find ENgetlinknodes function in epanet library";
+        std::string err = "Unable to find ENgetnodeid function in epanet library";
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
+
+    ENgetnodetype = (int
+    (*)(int, int *)) dlsym(en_lib_handle, "ENgetnodetype");if
+            (            !ENgetnodetype)
+    {
+        std::string err = "Unable to find ENgetnodetype function in epanet library";
+        std::cerr << err << std::endl;
+        throw std::runtime_error(err);
+    }
+
+    ENsetnodevalue = (int
+    (*)(int, int, float)) dlsym(en_lib_handle, "ENsetnodevalue");if
+            (            !ENsetnodevalue)
+    {
+        std::string err = "Unable to find ENsetnodevalue function in epanet library";
+        std::cerr << err << std::endl;
+        throw std::runtime_error(err);
+    }
+
 
     ENinitH = (int
     (*)(int)) dlsym(en_lib_handle, "ENinitH");if
@@ -387,23 +425,7 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
         throw std::runtime_error(err);
     }
 
-    ENgetnodetype = (int
-    (*)(int, int *)) dlsym(en_lib_handle, "ENgetnodetype");if
-            (            !ENgetnodetype)
-    {
-        std::string err = "Unable to find ENgetnodetype function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
 
-    ENsetnodevalue = (int
-    (*)(int, int, float)) dlsym(en_lib_handle, "ENsetnodevalue");if
-            (            !ENsetnodevalue)
-    {
-        std::string err = "Unable to find ENsetnodevalue function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
 
     ENgetcount = (int
     (*)(int, int *)) dlsym(en_lib_handle, "ENgetcount");if
@@ -499,10 +521,91 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
             + binaryFileName);
     // OPen the hydraulic solution
     errors(ENopenH(), "opening hydraulic solution");
+
     // Determine the pipe indices for the links we are optimising choice of pipe for.
     this->setLinkIndices();
     this->setNodeIndices();
+    this->getENInfo();
 
+}
+
+void
+ENMultiObjEvaluator::getENInfo()
+{
+
+    //GET infromation of network from EN.
+    errors(ENgetcount(EN_NODECOUNT, &(this->node_count)));
+    errors(ENgetcount(EN_LINKCOUNT, &(this->link_count)));
+
+    nodes = std::vector<NodeInfo>(node_count+1);
+    links = std::vector<LinkInfo>(link_count+1);
+
+    char id_buffer[16] = "";
+    int type_buffer = 0;
+    for (int j = 1; j <= this->node_count; ++j)
+    {
+        NodeInfo& node = nodes[j];
+        node.index = j;
+        errors(ENgetnodeid(j,id_buffer));
+        node.id = std::string(id_buffer);
+        errors(ENgetnodetype(j, &type_buffer));
+        switch (type_buffer)
+        {
+            case 0 :
+                node.type = JUNCTION;
+                break;
+            case 1 :
+                node.type = RESERVOIR;
+                break;
+            case 2:
+                node.type = TANK;
+                break;
+        }
+
+    }
+
+    for (int k = 1; k <= this->link_count ; ++k)
+    {
+        LinkInfo& link = links[k];
+        link.index = k;
+        errors(ENgetlinkid(k,id_buffer));
+        link.id = std::string(id_buffer);
+        errors(ENgetlinktype(k,&type_buffer));
+        switch (type_buffer)
+        {
+            case 0:
+                link.type = CVPIPE;
+                break;
+            case 1:
+                link.type = PIPE;
+                break;
+            case 2:
+                link.type = PUMP;
+                break;
+            case 3:
+                link.type = PRV;
+                break;
+            case 4:
+                link.type = PSV;
+                break;
+            case 5:
+                link.type = PBV;
+                break;
+            case 6:
+                link.type = FCV;
+                break;
+            case 7:
+                link.type = TCV;
+                break;
+            case 8:
+                link.type = GPV;
+                break;
+        }
+        errors(ENgetlinknodes(k, &(link.fromNode), &(link.toNode)));
+        nodes[link.fromNode].connectedLinkIndices.push_back(k);
+        nodes[link.toNode].connectedLinkIndices.push_back(k);
+
+    }
 }
 
 void
@@ -582,9 +685,9 @@ ENMultiObjEvaluator::setNodeIndices()
     //		std::vector<char> writableNodeID;    //char for en funtion call;
 
     //Work out how many different types of pipe can be chosen for each group of epanet links.
-    PressureConstraintsT::iterator enNode =
+    NodeConstraintsT::iterator enNode =
             params->pressure_constraints.begin();
-    PressureConstraintsT::iterator end =
+    NodeConstraintsT::iterator end =
             params->pressure_constraints.end();
 
     for (; enNode != end; ++enNode)
@@ -611,9 +714,9 @@ ENMultiObjEvaluator::setNodeIndices()
 
     float head = 0;
 
-    PressureConstraintsT::iterator hConstraint =
+    NodeConstraintsT::iterator hConstraint =
             params->head_constraints.begin();
-    PressureConstraintsT::iterator endH =
+    NodeConstraintsT::iterator endH =
             params->head_constraints.end();
 
     for (; hConstraint != endH; ++hConstraint)
@@ -904,9 +1007,9 @@ ENMultiObjEvaluator::evalPressurePenalty()
 
     float pressure = 0;
 
-    PressureConstraintsT::iterator pConstraint =
+    NodeConstraintsT::iterator pConstraint =
             params->pressure_constraints.begin();
-    PressureConstraintsT::iterator end =
+    NodeConstraintsT::iterator end =
             params->pressure_constraints.end();
 
     double maxDeviationHigh = 0;
@@ -958,9 +1061,9 @@ ENMultiObjEvaluator::evalHeadPenalty()
 
     float head = 0;
 
-    PressureConstraintsT::iterator hConstraint =
+    NodeConstraintsT::iterator hConstraint =
             params->head_constraints.begin();
-    PressureConstraintsT::iterator end = params->head_constraints.end();
+    NodeConstraintsT::iterator end = params->head_constraints.end();
 
     double maxDeviationHigh = 0;
     double maxDeviationLow = 0;
@@ -1080,6 +1183,8 @@ ENMultiObjEvaluator::evalHydraulicConstraints()
             this->evalHeadPenalty();
         if (params->isVelocityConstraint)
             this->evalVelocityPenalty();
+        if (params->isNetworkResiliencyObj)
+            this->evalResiliency();
         //std::clog << "Progressing to next time step" << std::endl;
         this->errors(ENnextH(&timeStep), "solving time step"); //Runs the hydraulic simulation. Only one period used at the moment
     }
@@ -1087,9 +1192,87 @@ ENMultiObjEvaluator::evalHydraulicConstraints()
 
 }
 
+
+
+void
+ENMultiObjEvaluator::evalResiliency()
+{
+
+    int nPipe;
+    float maxDiameter;
+    float sumDiameter;
+    float head_actual;
+    float head_required;
+    float demand;
+    float retrievedData;
+    float Cj;
+    float X = 0;
+    float Xmax = 0;
+
+
+    NodeConstraintsT::iterator hConstraint =
+            params->head_constraints.begin();
+    NodeConstraintsT::iterator end = params->head_constraints.end();
+
+
+
+    for (; hConstraint != end; ++hConstraint)
+    {
+        //std::cout << "Junction: \"" << Pressures(pConstraint).id << "\"" << std::endl;
+        //std::cout << "ID: \"" << nodeIndices[Pressures(pConstraint).id] << "\"" << std::endl;
+
+        int node_index = nodeIndices[Heads(hConstraint).id];
+        NodeInfo &node = this->nodes[node_index];
+        nPipe = 0;
+        maxDiameter = 0;
+        sumDiameter = 0;
+        if (node.type == JUNCTION)
+        {
+            BOOST_FOREACH(int link_index, node.connectedLinkIndices)
+                        {
+                            ENgetlinkvalue(link_index, EN_DIAMETER, &retrievedData);
+                            if (retrievedData > 0.01)
+                            {
+                                nPipe += 1;
+                                sumDiameter += retrievedData;
+                                if (retrievedData > maxDiameter) maxDiameter = retrievedData;
+                            }
+                        }
+            Cj = sumDiameter / (nPipe * maxDiameter);
+
+            errors(ENgetnodevalue(node_index, EN_HEAD, &head_actual));
+            head_required = Heads(hConstraint).minHead;
+            errors(ENgetnodevalue(node_index, EN_DEMAND, &demand));
+            X += Cj * demand * (head_actual - head_required);
+            Xmax -= demand * head_required;
+        }
+    }
+
+    float reservoir_discharge;
+    float reservoir_head;
+    for (int i=1; i<=this->node_count; i++)
+    {
+        NodeInfo & node = this->nodes[i];
+        if (node.type == RESERVOIR)
+        {
+            errors(ENgetnodevalue(node.index, EN_HEAD, &reservoir_head));
+            errors(ENgetnodevalue(node.index, EN_DEMAND, &reservoir_discharge));
+            Xmax -= reservoir_discharge * reservoir_head;
+        }
+    }
+
+    this->results.networkResilience = X / Xmax;
+
+}
+
 double ENMultiObjEvaluator::getPipeCapitalCost()
 {
     return this->results.pipeCapitalCost;
+}
+
+double ENMultiObjEvaluator::getNetworkResilience()
+{
+    return this->results.networkResilience;
 }
 
 double ENMultiObjEvaluator::getSumPressureTooHigh()

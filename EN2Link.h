@@ -151,7 +151,7 @@ getMaxVelocityTooHigh(int analysisID);
  * @return
  */
 DLLEXPORT double WINAPI
-getResilience(int analysisID);
+getNetworkResilience(int analysisID);
 
 
 DLLEXPORT void WINAPI

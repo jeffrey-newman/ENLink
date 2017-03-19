@@ -143,6 +143,7 @@ struct Results
             sumHeadTooHigh(0), //
             sumHeadTooLow(0), //
             sumVelocityTooHigh(0),
+            networkResilience(0), //
             costPipes(0), //
             pipeRepairCost(0), //
             pipeCapitalCost(0), //
@@ -169,6 +170,8 @@ struct Results
     double sumHeadTooLow; /**< */
     double sumVelocityTooHigh; /**< */
 
+    double networkResilience;
+
     std::string penaltyPresLoc;
     std::string penaltyHeadLoc;
     std::string penaltyVelLoc;
@@ -193,6 +196,27 @@ struct Results
 
     std::vector< TankResultsInfo > tankresults_vec;
     TankResultsInfo net_tank_results;
+};
+
+enum NodeType{JUNCTION, RESERVOIR, TANK};
+
+struct NodeInfo
+{
+    std::string id;
+    NodeType type;
+    int index;
+    std::vector<int> connectedLinkIndices;
+};
+
+enum LinkType{CVPIPE, PIPE, PUMP, PRV, PSV, PBV, FCV, TCV, GPV};
+
+struct LinkInfo
+{
+    std::string id;
+    LinkType  type;
+    int index;
+    int fromNode;
+    int toNode;
 };
 
 class ENMultiObjEvaluator {
@@ -222,6 +246,9 @@ public:
 
     double
     getPipeCapitalCost();
+
+    double
+    getNetworkResilience();
 
     double
     getSumPressureTooHigh();
@@ -295,65 +322,71 @@ private:
     void
     evalHydraulicConstraints();
 
+    void
+    evalResiliency();
+
 
     bool
     errors(int err, std::string what = "");
 
     //Function pointers in the epanet library
-    int
-    (*ENopen)(char *, char *, char *);
-    int
-    (*ENopenH)(void);
-    int
-    (*ENgetlinkindex)(char *, int*);
-    int
-    (*ENgetnodeindex)(char *, int *);
-    int
-    (*ENsetlinkvalue)(int, int, float);
-    int
-    (*ENgetlinkvalue)(int, int, float *);
-    int
-    (*ENgetnodevalue)(int, int, float *);
-    int
-    (*ENsetnodevalue)(int, int, float);
-    int
-    (*ENgetcount)(int, int *);
-    int
-    (*ENgetnodetype)(int, int *);
-    int
-    (*ENgetlinknodes)(int, int*, int*);
-    int
-    (*ENgetpatternindex)(char* , int* );
-    int
-    (*ENsetpattern)(int, float *, int);
-    int
-    (*ENsetpatternvalue)(int, int, float);
+    int (*ENopen)(char *, char *, char *);
 
-    int
-    (*ENinitH)(int);
-    int
-    (*ENrunH)(long *);
-    int
-    (*ENnextH)(long *);
+    int (*ENopenH)(void);
 
-    int
-    (*ENsaveH)(void);
-    int
-    (*ENresetreport)(void);
-    int
-    (*ENsetreport)(char *);
-    int
-    (*ENreport)(void);
-    int
-    (*ENsaveinpfile)(char *);
+    int (*ENgetlinkindex)(char *, int *);
 
-    int
-    (*ENgeterror)(int, char*, int);
+    int (*ENgetlinkid)(int, char*);
 
-    int
-    (*ENcloseH)(void);
-    int
-    (*ENclose)(void);
+    int (*ENgetlinktype)(int, int*);
+
+    int (*ENgetlinknodes)(int, int*, int*);
+
+    int (*ENsetlinkvalue)(int, int, float);
+
+    int (*ENgetlinkvalue)(int, int, float *);
+
+
+
+    int (*ENgetnodeindex)(char *, int *);
+
+    int (*ENgetnodevalue)(int, int, float *);
+
+    int (*ENgetnodeid)(int, char*);
+
+    int (*ENgetnodetype)(int, int*);
+
+    int (*ENsetnodevalue)(int, int, float);
+
+    int (*ENgetcount)(int, int *);
+
+    int (*ENgetpatternindex)(char *, int *);
+
+    int (*ENsetpattern)(int, float *, int);
+
+    int (*ENsetpatternvalue)(int, int, float);
+
+    int (*ENinitH)(int);
+
+    int (*ENrunH)(long *);
+
+    int (*ENnextH)(long *);
+
+    int (*ENsaveH)(void);
+
+    int (*ENresetreport)(void);
+
+    int (*ENsetreport)(char *);
+
+    int (*ENreport)(void);
+
+    int (*ENsaveinpfile)(char *);
+
+    int (*ENgeterror)(int, char *, int);
+
+    int (*ENcloseH)(void);
+
+    int (*ENclose)(void);
 
     std::map< std::string, int > linkIndices;
     std::map< std::string, int > nodeIndices;
@@ -380,10 +413,14 @@ private:
     boost::scoped_array< char > linkID;
     boost::scoped_array< char > nodeID;
 
-    void
-    setLinkIndices();
-    void
-    setNodeIndices();
+    int node_count;
+    int link_count;
+    std::vector<NodeInfo> nodes;
+    std::vector<LinkInfo> links;
+
+    void setLinkIndices();
+    void setNodeIndices();
+    void getENInfo();
 
 
 };

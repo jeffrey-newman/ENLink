@@ -317,11 +317,11 @@ struct LinkGroups {
     PipeIdVec &epanetLinkIds;
 };
 
-typedef std::map<std::string, std::pair<double, double> > PressureConstraintsT;
+typedef std::map<std::string, std::pair<double, double> > NodeConstraintsT;
 
 struct Pressures {
 
-    Pressures(PressureConstraintsT::iterator &it) :
+    Pressures(NodeConstraintsT::iterator &it) :
             id(it->first), minPressure(it->second.first), maxPressure(
             it->second.second) {
     }
@@ -334,7 +334,7 @@ struct Pressures {
 
 struct Heads {
 
-    Heads(PressureConstraintsT::iterator &it) :
+    Heads(NodeConstraintsT::iterator &it) :
             id(it->first), minHead(it->second.first), maxHead(
             it->second.second) {
     }
@@ -424,9 +424,9 @@ struct OptData {
     PipeAvailOptionsType pipe_availOpt_data;
     TankAvailableOptionsType tank_availOpt_data;
     VSPType vsp_data;
-    PressureConstraintsT pressure_constraints;
+    NodeConstraintsT pressure_constraints;
     VelocityConstraintsT velocity_constraints;
-    PressureConstraintsT head_constraints;
+    NodeConstraintsT head_constraints;
     double PressurePenaltyCost;
     double PressurePenaltyEE;
     double PressurePenaltyWtr;
@@ -483,6 +483,7 @@ struct OptData {
     bool isOptVSP;
     bool isOptTanks;
     bool isCostObj;
+    bool isNetworkResiliencyObj;
     bool isEnergyObj;
     bool isWtrObj;
     bool isPressureConstraint;
@@ -538,26 +539,17 @@ public:
     qi::rule <Str_it, Skipper> OptimiseRule;
     qi::rule <Str_it, Skipper> ObjectivesRule;
     qi::rule <Str_it, Skipper> ConstraintsRule;
-    qi::rule<Str_it, bool
-            (), Skipper> isDistSystem_rule;
-    qi::rule<Str_it, bool
-            (), Skipper> isCollSystem_rule;
-    qi::rule<Str_it, bool
-            (), Skipper> isWtrBalSystem_rule;
-    qi::rule<Str_it, bool
-            (), Skipper> isOptPipes_rule;
-    qi::rule<Str_it, bool
-            (), Skipper> isOptVSP_rule;
-    qi::rule<Str_it, bool
-            (), Skipper> isOptTanks_rule;
-    qi::rule<Str_it, bool
-            (), Skipper> allTanksSameSize_rule;
-    qi::rule<Str_it, bool
-            (), Skipper> allowVariableSize_rule;
-    qi::rule<Str_it, bool
-            (), Skipper> isCostObj_rule;
-    qi::rule<Str_it, bool
-            (), Skipper> isEnergyObj_rule;
+    qi::rule<Str_it, bool(), Skipper> isDistSystem_rule;
+    qi::rule<Str_it, bool(), Skipper> isCollSystem_rule;
+    qi::rule<Str_it, bool(), Skipper> isWtrBalSystem_rule;
+    qi::rule<Str_it, bool(), Skipper> isOptPipes_rule;
+    qi::rule<Str_it, bool(), Skipper> isOptVSP_rule;
+    qi::rule<Str_it, bool(), Skipper> isOptTanks_rule;
+    qi::rule<Str_it, bool(), Skipper> allTanksSameSize_rule;
+    qi::rule<Str_it, bool(), Skipper> allowVariableSize_rule;
+    qi::rule<Str_it, bool(), Skipper> isCostObj_rule;
+    qi::rule<Str_it, bool(), Skipper> isNetworkResiliency_rule;
+    qi::rule<Str_it, bool(), Skipper> isEnergyObj_rule;
     qi::rule<Str_it, bool
             (), Skipper> isWtrObj_rule;
     qi::rule<Str_it, bool
@@ -828,7 +820,7 @@ public:
     qi::rule<Str_it,
             std::pair<std::string, std::pair<double, double> >
                     (), Skipper> pressure_constraint;
-    qi::rule<Str_it, PressureConstraintsT
+    qi::rule<Str_it, NodeConstraintsT
             (), Skipper> pressure_constraints_r;
 
     //rules that define the heads constrain part of the input file
@@ -842,7 +834,7 @@ public:
     qi::rule<Str_it,
             std::pair<std::string, std::pair<double, double> >
                     (), Skipper> head_constraint;
-    qi::rule<Str_it, PressureConstraintsT
+    qi::rule<Str_it, NodeConstraintsT
             (), Skipper> head_constraints_r;
 
     //rules that define the velocities part of the input file

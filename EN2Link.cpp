@@ -140,9 +140,10 @@ double getMaxVelocityTooHigh(int analysisID)
 }
 
 
-double getResilience(int analysisID)
+double getNetworkResilience(int analysisID)
 {
-    return 0;
+    AnalysisData & analysis = analysis_map[analysisID];
+    return( analysis.evaluator->getNetworkResilience());
 }
 
 void handBackAnalysis(int analysisID)

@@ -121,6 +121,7 @@ OptFileParser::init() {
     allowVariableSize_rule = no_case[lit("Allow variable sizes")[_val = false]];
 
     isCostObj_rule = no_case[lit("Cost")[_val = true]];
+    isNetworkResiliency_rule = no_case[lit("NetworkResiliency")[_val=true]];
     isEnergyObj_rule = no_case[lit("Energy")[_val = true]];
     isWtrObj_rule = no_case[lit("WaterSavings")[_val = true]];
     isPressureConstraint_rule = no_case[lit("Pressure")[_val = true]];
@@ -163,6 +164,7 @@ OptFileParser::init() {
     ObjectivesRule = no_case[lit("Objectives:")] >> //
                                                  *( //
                                                          isCostObj_rule[phoenix::ref(optData->isCostObj) = _1] //
+                                                         | isNetworkResiliency_rule[phoenix::ref(optData->isNetworkResiliencyObj) = _1] //
                                                          | isEnergyObj_rule[phoenix::ref(optData->isEnergyObj) = _1] //
                                                          | isWtrObj_rule[phoenix::ref(optData->isWtrObj) = _1] //
                                                          | lit(",") //
@@ -847,7 +849,7 @@ operator<<(std::ostream &os, const OptData &optdata) {
     os
             << ";-----------------------------------------------------------------------------------------------------------------------------"
             << std::endl;
-    for (PressureConstraintsT::const_iterator hconst =
+    for (NodeConstraintsT::const_iterator hconst =
             optdata.head_constraints.begin();
          hconst != optdata.head_constraints.end(); ++hconst) {
         os << hconst->first << "\t" << hconst->second.first << "\t"
@@ -864,7 +866,7 @@ operator<<(std::ostream &os, const OptData &optdata) {
     os
             << ";-----------------------------------------------------------------------------------------------------------------------------"
             << std::endl;
-    for (PressureConstraintsT::const_iterator pconst =
+    for (NodeConstraintsT::const_iterator pconst =
             optdata.pressure_constraints.begin();
          pconst != optdata.pressure_constraints.end(); ++pconst) {
         os << pconst->first << "\t" << pconst->second.first << "\t"
