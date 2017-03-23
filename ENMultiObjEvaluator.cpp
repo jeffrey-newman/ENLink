@@ -215,7 +215,7 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
         throw std::runtime_error(err);
     }
 
-    en_lib_handle = dlopen(en_lib_path.c_str(), RTLD_LAZY);
+    en_lib_handle = dlopen(en_lib_path.string().c_str(), RTLD_LAZY);
     if (!en_lib_handle)
     {
         std::string err = "Unable to load epanet library."
@@ -493,8 +493,8 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
 
     //Open the toolkit and the input file in epanet
     ENFile_cstr.reset(
-            new char[working_en_inp_path.string().size() + 1]);strcpy
-            (ENFile_cstr.get(), working_en_inp_path.c_str());
+            new char[working_en_inp_path.string().size() + 1]);
+	strcpy(ENFile_cstr.get(), working_en_inp_path.string().c_str());
 
     //Work out the location for the report file....
     std::string tmpReportName = reportFileName
@@ -502,16 +502,16 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
     fs::path en_report_path = this->workingDir / tmpReportName;
 
     //create the report and binary files...
-    reportFile_cstr.reset(new char[en_report_path.string().size() + 1]);strcpy
-            (reportFile_cstr.get(), en_report_path.c_str());
+    reportFile_cstr.reset(new char[en_report_path.string().size() + 1]);
+	strcpy(reportFile_cstr.get(), en_report_path.string().c_str());
 
     //Woprk out the location for the binary file...
     std::string tmpBinName = binaryFileName
                              + boost::lexical_cast< std::string >(dlOpenCount) + ".bin";
     fs::path en_bin_path = this->workingDir / tmpBinName;
 
-    binaryFile_cstr.reset(new char[en_bin_path.string().size() + 1]);strcpy
-            (binaryFile_cstr.get(), en_bin_path.c_str());
+    binaryFile_cstr.reset(new char[en_bin_path.string().size() + 1]);
+	strcpy(binaryFile_cstr.get(), en_bin_path.string().c_str());
 
     //std::cout << ENFile_cstr << std::endl;
     errors(
@@ -743,8 +743,9 @@ ENMultiObjEvaluator::errors(int err, std::string what)
         std::cerr << "\n EPANET2 ERROR CODE: " << err << std::endl;
         err_out << "\n EPANET2 ERROR CODE: " << err << std::endl;
         int nchar = 160;
-        char errorMsg[nchar + 1];this
-                ->errors(ENgeterror(err, errorMsg, nchar));
+        //char errorMsg[nchar + 1];
+		char errorMsg[161];
+		this->errors(ENgeterror(err, errorMsg, nchar));
         std::cerr << "\n\t MEANING: " << errorMsg << std::endl;
         err_out << "\n EPANET2 ERROR CODE: " << err << std::endl;
         std::cerr << "RELATED TO: " << what << std::endl;
