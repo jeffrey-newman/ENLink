@@ -11,6 +11,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/scoped_array.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/function.hpp>
 #include "OptParser.h"
 
 
@@ -330,63 +331,34 @@ private:
     errors(int err, std::string what = "");
 
     //Function pointers in the epanet library
-    int (*ENopen)(char *, char *, char *);
-
-    int (*ENopenH)(void);
-
-    int (*ENgetlinkindex)(char *, int *);
-
-    int (*ENgetlinkid)(int, char*);
-
-    int (*ENgetlinktype)(int, int*);
-
-    int (*ENgetlinknodes)(int, int*, int*);
-
-    int (*ENsetlinkvalue)(int, int, float);
-
-    int (*ENgetlinkvalue)(int, int, float *);
-
-
-
-    int (*ENgetnodeindex)(char *, int *);
-
-    int (*ENgetnodevalue)(int, int, float *);
-
-    int (*ENgetnodeid)(int, char*);
-
-    int (*ENgetnodetype)(int, int*);
-
-    int (*ENsetnodevalue)(int, int, float);
-
-    int (*ENgetcount)(int, int *);
-
-    int (*ENgetpatternindex)(char *, int *);
-
-    int (*ENsetpattern)(int, float *, int);
-
-    int (*ENsetpatternvalue)(int, int, float);
-
-    int (*ENinitH)(int);
-
-    int (*ENrunH)(long *);
-
-    int (*ENnextH)(long *);
-
-    int (*ENsaveH)(void);
-
-    int (*ENresetreport)(void);
-
-    int (*ENsetreport)(char *);
-
-    int (*ENreport)(void);
-
-    int (*ENsaveinpfile)(char *);
-
-    int (*ENgeterror)(int, char *, int);
-
-    int (*ENcloseH)(void);
-
-    int (*ENclose)(void);
+    boost::function<int (char*, char*, char*) > ENopen_f;
+    boost::function<int (void) > ENopenH_f;
+    boost::function<int (char*, int*) > ENgetlinkindex_f;
+    boost::function<int (int, char*) > ENgetlinkid_f;
+    boost::function<int (int, int*) > ENgetlinktype_f;
+    boost::function<int (int, int*, int*) > ENgetlinknodes_f;
+    boost::function<int (int, int, float) > ENsetlinkvalue_f;
+    boost::function<int (int, int, float *) > ENgetlinkvalue_f;
+    boost::function<int (char *, int *) > ENgetnodeindex_f;
+    boost::function<int (int, int, float *) > ENgetnodevalue_f;
+    boost::function<int (int, char *) > ENgetnodeid_f;
+    boost::function<int (int, int*) > ENgetnodetype_f;
+    boost::function<int (int, int, float) > ENsetnodevalue_f;
+    boost::function<int (int, int *) > ENgetcount_f;
+    boost::function<int (char *, int *) > ENgetpatternindex_f;
+    boost::function<int (int, float *, int) > ENsetpattern_f;
+    boost::function<int (int, int, float) > ENsetpatternvalue_f;
+    boost::function<int (int) > ENinitH_f;
+    boost::function<int (long *) > ENrunH_f;
+    boost::function<int ( long *) > ENnextH_f;
+    boost::function<int (void) > ENsaveH_f;
+    boost::function<int (void) > ENresetreport_f;
+    boost::function<int (char *) > ENsetreport_f;
+    boost::function<int (void) > ENreport_f;
+    boost::function<int (char *) > ENsaveinpfile_f;
+    boost::function<int (int, char *, int) > ENgeterror_f;
+    boost::function<int (void) > ENcloseH_f;
+    boost::function<int (void) > ENclose_f;
 
     std::map< std::string, int > linkIndices;
     std::map< std::string, int > nodeIndices;
@@ -418,6 +390,9 @@ private:
     std::vector<NodeInfo> nodes;
     std::vector<LinkInfo> links;
 
+    void initialise_USEPA_EN2();
+    void initialise_EN3();
+    void initialise_Ibanez_EN2(); //http://lopez-ibanez.eu/epanet-thread-safe
     void setLinkIndices();
     void setNodeIndices();
     void getENInfo();
