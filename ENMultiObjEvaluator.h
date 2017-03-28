@@ -14,7 +14,6 @@
 #include <boost/function.hpp>
 #include "OptParser.h"
 
-
 struct PipeEvalData
 {
     double capCost;
@@ -199,22 +198,22 @@ struct Results
     TankResultsInfo net_tank_results;
 };
 
-enum NodeType{JUNCTION, RESERVOIR, TANK};
+enum ENLinkNodeType{ENLNK_JUNCTION, ENLNK_RESERVOIR, ENLNK_TANK};
 
 struct NodeInfo
 {
     std::string id;
-    NodeType type;
+    ENLinkNodeType type;
     int index;
     std::vector<int> connectedLinkIndices;
 };
 
-enum LinkType{CVPIPE, PIPE, PUMP, PRV, PSV, PBV, FCV, TCV, GPV};
+enum ENLinkLinkType{ENLNK_CVPIPE, ENLNK_PIPE, ENLNK_PUMP, ENLNK_PRV, ENLNK_PSV, ENLNK_PBV, ENLNK_FCV, ENLNK_TCV, ENLNK_GPV};
 
 struct LinkInfo
 {
     std::string id;
-    LinkType  type;
+    ENLinkLinkType  type;
     int index;
     int fromNode;
     int toNode;
@@ -390,8 +389,8 @@ private:
     std::vector<NodeInfo> nodes;
     std::vector<LinkInfo> links;
 
-    void initialise_USEPA_EN2();
-    void initialise_EN3();
+    void initialise_OWA_EN2();
+    void initialise_OWA_EN3();
     void initialise_Ibanez_EN2(); //http://lopez-ibanez.eu/epanet-thread-safe
     void setLinkIndices();
     void setNodeIndices();

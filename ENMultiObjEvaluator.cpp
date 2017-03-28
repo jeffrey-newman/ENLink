@@ -2,132 +2,165 @@
 // Created by a1091793 on 2/3/17.
 //
 
-#include "ENMultiObjEvaluator.h"
 #include <dlfcn.h>
-
+#include "ENMultiObjEvaluator.h"
 #include <boost/lexical_cast.hpp>
 
+
+int EN_ELEVATION;
+int EN_BASEDEMAND;
+int EN_PATTERN;
+int EN_EMITTER;
+int EN_INITQUAL;
+int EN_SOURCEQUAL;
+int EN_SOURCEPAT;
+int EN_SOURCETYPE;
+int EN_TANKLEVEL;
+int EN_DEMAND;
+int EN_HEAD;
+int EN_PRESSURE;
+int EN_QUALITY;
+int EN_SOURCEMASS;
+int EN_INITVOLUME;
+int EN_MIXMODEL;
+int EN_MIXZONEVOL;
+
+int EN_TANKDIAM;
+int EN_MINVOLUME;
+int EN_VOLCURVE;
+int EN_MINLEVEL;
+int EN_MAXLEVEL;
+int EN_MIXFRACTION;
+int EN_TANK_KBULK;
+int EN_TANKVOLUME;
+int EN_MAXVOLUME;
+
+int EN_DIAMETER;
+int EN_LENGTH;
+int EN_ROUGHNESS;
+int EN_MINORLOSS;
+int EN_INITSTATUS;
+int EN_INITSETTING;
+int EN_KBULK;
+int EN_KWALL;
+int EN_FLOW;
+int EN_VELOCITY;
+int EN_HEADLOSS;
+int EN_STATUS;
+int EN_SETTING;
+int EN_ENERGY;
+int EN_LINKQUAL;
+int EN_LINKPATTERN;
+
+int EN_DURATION;
+int EN_HYDSTEP;
+int EN_QUALSTEP;
+int EN_PATTERNSTEP;
+int EN_PATTERNSTART;
+int EN_REPORTSTEP;
+int EN_REPORTSTART;
+int EN_RULESTEP;
+int EN_STATISTIC;
+int EN_PERIODS;
+int EN_STARTTIME;
+int         EN_HTIME;
+int EN_QTIME;
+int         EN_HALTFLAG;
+int EN_NEXTEVENT;
+
+int EN_ITERATIONS;
+int         EN_RELATIVEERROR;
+
+int EN_NODECOUNT;
+int EN_TANKCOUNT;
+int EN_LINKCOUNT;
+int EN_PATCOUNT;
+int EN_CURVECOUNT;
+int EN_CONTROLCOUNT;
+
+int EN_JUNCTION;
+int EN_RESERVOIR;
+int EN_TANK;
+
+int EN_CVPIPE;
+int EN_PIPE;
+int EN_PUMP;
+int EN_PRV;
+int EN_PSV;
+int EN_PBV;
+int EN_FCV;
+int EN_TCV;
+int EN_GPV;
+
+int EN_NONE;
+int EN_CHEM;
+int EN_AGE;
+int EN_TRACE;
+
+int EN_CONCEN;
+int EN_MASS;
+int EN_SETPOINT;
+int EN_FLOWPACED;
+
+int EN_CFS;
+int EN_GPM;
+int EN_MGD;
+int EN_IMGD;
+int EN_AFD;
+int EN_LPS;
+int EN_LPM;
+int EN_MLD;
+int EN_CMH;
+int EN_CMD;
+
+int EN_TRIALS;
+int EN_ACCURACY;
+int EN_TOLERANCE;
+int EN_EMITEXPON;
+int EN_DEMANDMULT;
+
+int EN_LOWLEVEL;
+int EN_HILEVEL;
+int EN_TIMER;
+int EN_TIMEOFDAY;
+
+int EN_AVERAGE;
+int EN_MINIMUM;
+int EN_MAXIMUM ;
+int EN_RANGE ;
+
+int EN_MIX1;
+int EN_MIX2 ;
+int EN_FIFO ;
+int EN_LIFO ;
+
+int EN_NOSAVE ;
+int EN_SAVE;
+int EN_INITFLOW ;
+int EN_SAVE_AND_INIT;
+
+int EN_CONST_HP;
+int         EN_POWER_FUNC;
+int EN_CUSTOM;
+
+//Additional variables in Ibanez's version of EN2
+int EN_VOLUME;
+int EN_UPATTERN;
+int EN_INITVOL;
+int EN_SCHEDULE;
+int EN_CLOCKSTART;
+int EN_PUMPCOUNT;
+int EN_RESERVCOUNT;
+int EN_JUNCSCOUNT;
+
+
+#include "InitialiseIbanezEN2.h"
+#include "InitialiseOwaEN2.h"
 // --- Define the EPANET toolkit constants
 
-#define EN_ELEVATION    0    /* Node parameters */
-#define EN_BASEDEMAND   1
-#define EN_PATTERN      2
-#define EN_EMITTER      3
-#define EN_INITQUAL     4
-#define EN_SOURCEQUAL   5
-#define EN_SOURCEPAT    6
-#define EN_SOURCETYPE   7
-#define EN_TANKLEVEL    8
-#define EN_DEMAND       9
-#define EN_HEAD         10
-#define EN_PRESSURE     11
-#define EN_QUALITY      12
-#define EN_SOURCEMASS   13
-#define EN_INITVOLUME   14
-#define EN_MIXMODEL     15
-#define EN_MIXZONEVOL   16
 
-#define EN_TANKDIAM     17
-#define EN_MINVOLUME    18
-#define EN_VOLCURVE     19
-#define EN_MINLEVEL     20
-#define EN_MAXLEVEL     21
-#define EN_MIXFRACTION  22
-#define EN_TANK_KBULK   23
 
-#define EN_DIAMETER     0    /* Link parameters */
-#define EN_LENGTH       1
-#define EN_ROUGHNESS    2
-#define EN_MINORLOSS    3
-#define EN_INITSTATUS   4
-#define EN_INITSETTING  5
-#define EN_KBULK        6
-#define EN_KWALL        7
-#define EN_FLOW         8
-#define EN_VELOCITY     9
-#define EN_HEADLOSS     10
-#define EN_STATUS       11
-#define EN_SETTING      12
-#define EN_ENERGY       13
-
-#define EN_DURATION     0    /* Time parameters */
-#define EN_HYDSTEP      1
-#define EN_QUALSTEP     2
-#define EN_PATTERNSTEP  3
-#define EN_PATTERNSTART 4
-#define EN_REPORTSTEP   5
-#define EN_REPORTSTART  6
-#define EN_RULESTEP     7
-#define EN_STATISTIC    8
-#define EN_PERIODS      9
-
-#define EN_NODECOUNT    0    /* Component counts */
-#define EN_TANKCOUNT    1
-#define EN_LINKCOUNT    2
-#define EN_PATCOUNT     3
-#define EN_CURVECOUNT   4
-#define EN_CONTROLCOUNT 5
-
-#define EN_JUNCTION     0    /* Node types */
-#define EN_RESERVOIR    1
-#define EN_TANK         2
-
-#define EN_CVPIPE       0    /* Link types */
-#define EN_PIPE         1
-#define EN_PUMP         2
-#define EN_PRV          3
-#define EN_PSV          4
-#define EN_PBV          5
-#define EN_FCV          6
-#define EN_TCV          7
-#define EN_GPV          8
-
-#define EN_NONE         0    /* Quality analysis types */
-#define EN_CHEM         1
-#define EN_AGE          2
-#define EN_TRACE        3
-
-#define EN_CONCEN       0    /* Source quality types */
-#define EN_MASS         1
-#define EN_SETPOINT     2
-#define EN_FLOWPACED    3
-
-#define EN_CFS          0    /* Flow units types */
-#define EN_GPM          1
-#define EN_MGD          2
-#define EN_IMGD         3
-#define EN_AFD          4
-#define EN_LPS          5
-#define EN_LPM          6
-#define EN_MLD          7
-#define EN_CMH          8
-#define EN_CMD          9
-
-#define EN_TRIALS       0   /* Misc. options */
-#define EN_ACCURACY     1
-#define EN_TOLERANCE    2
-#define EN_EMITEXPON    3
-#define EN_DEMANDMULT   4
-
-#define EN_LOWLEVEL     0   /* Control types */
-#define EN_HILEVEL      1
-#define EN_TIMER        2
-#define EN_TIMEOFDAY    3
-
-#define EN_AVERAGE      1   /* Time statistic types.    */
-#define EN_MINIMUM      2
-#define EN_MAXIMUM      3
-#define EN_RANGE        4
-
-#define EN_MIX1         0   /* Tank mixing models */
-#define EN_MIX2         1
-#define EN_FIFO         2
-#define EN_LIFO         3
-
-#define EN_NOSAVE       0   /* Save-results-to-file flag */
-#define EN_SAVE         1
-#define EN_INITFLOW     10  /* Re-initialize flow flag   */
-
+typedef struct _ENsimulation_t * ENsimulation_t;
 
 ENMultiObjEvaluator::ENMultiObjEvaluator()
 {
@@ -140,326 +173,6 @@ ENMultiObjEvaluator::~ENMultiObjEvaluator()
     if (dlclose(en_lib_handle) != 0) {
         printf("[%s] Problem closing library: %s", __FILE__, dlerror());
     }
-}
-
-void
-ENMultiObjEvaluator::initialise_USEPA_EN2()
-{
-    namespace fs = boost::filesystem;
-
-    err_out.open("en2_err.log",
-                 std::ios_base::out | std::ios_base::app);
-
-    if (!err_out.is_open())
-    {
-        std::string err = "Unable to open epanet error log file."
-                " Check location";
-        std::cerr << err << std::endl;
-        std::cout << dlerror() << std::endl;
-        throw std::runtime_error(err);
-
-    }
-
-    //Work out the location of the epanet library.
-
-    fs::path en_lib_path(epanet_dylib_loc);
-
-    if (!fs::exists(en_lib_path))
-    {
-        std::string err = "Unable to locate epanet library at: "
-                          + en_lib_path.string();
-        throw std::runtime_error(err);
-    }
-
-    en_lib_handle = dlopen(en_lib_path.c_str(), RTLD_LAZY);
-    if (!en_lib_handle)
-    {
-        std::string err = "Unable to load epanet library."
-                                  " Check location: " + en_lib_path.string();
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-
-    int (*ENopen)(char *, char *, char *);
-    ENopen = (int (*)(char *, char *, char *)) dlsym(en_lib_handle, "ENopen"); //
-    if(!ENopen)
-    {
-        std::string err = "Unable to find ENopen function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENopen_f = ENopen;
-
-    int (*ENopenH)(void);
-    ENopenH = (int (*)(void)) dlsym(en_lib_handle, "ENopenH"); //
-    if(!ENopenH)
-    {
-
-        std::string err = "Unable to find ENOpenH function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENopenH_f = ENopenH;
-
-    int (*ENgetlinkindex)(char *, int *);
-    ENgetlinkindex = (int (*)(char *, int*)) dlsym(en_lib_handle, "ENgetlinkindex");
-    if(!ENgetlinkindex)
-    {
-        std::string err = "Unable to find ENgetlinkindex function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENgetlinkindex_f = ENgetlinkindex;
-
-    int (*ENgetlinkid)(int, char*);
-    ENgetlinkid = (int (*)(int, char*)) dlsym(en_lib_handle, "ENgetlinkid");
-    if (!ENgetlinkid)
-    {
-        std::string err = "Unable to find ENgetlinkid function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENgetlinkid_f = ENgetlinkid;
-
-    int (*ENgetlinktype)(int, int*);
-    ENgetlinktype = (int (*)(int, int*)) dlsym(en_lib_handle, "ENgetlinktype");if
-            (            !ENgetlinktype)
-    {
-        std::string err = "Unable to find ENgetlinktype function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-
-    int (*ENgetlinknodes)(int, int*, int*);
-    ENgetlinknodes = (int(*)(int, int*, int*)) dlsym(en_lib_handle, "ENgetlinknodes");
-    if (!ENgetlinknodes)
-    {
-        std::string err = "Unable to find ENgetlinknodes function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENgetlinknodes_f = ENgetlinknodes;
-
-    int (*ENgetlinkvalue)(int, int, float *);
-    ENgetlinkvalue = (int (*)(int, int, float *)) dlsym(en_lib_handle, "ENgetlinkvalue");
-    if(!ENgetlinkvalue)
-    {
-        std::string err = "Unable to find ENgetlinkvalue function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENgetlinkvalue_f = ENgetlinkvalue;
-
-    int (*ENsetlinkvalue)(int, int, float);
-    ENsetlinkvalue = (int(*)(int, int, float)) dlsym(en_lib_handle, "ENsetlinkvalue");
-    if (!ENsetlinkvalue)
-    {
-        std::string err = "Unable to find ENsetlinkvalue function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENsetlinkvalue_f = ENsetlinkvalue;
-
-    int (*ENgetnodeindex)(char *, int *);
-    ENgetnodeindex = (int (*)(char *, int*)) dlsym(en_lib_handle, "ENgetnodeindex");
-    if (!ENgetnodeindex)
-    {
-        std::string err ="Unable to find ENgetnodeindex function in epanet libary";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENgetnodeindex_f = ENgetnodeindex;
-
-    int (*ENgetnodevalue)(int, int, float *);
-    ENgetnodevalue = (int (*)(int, int, float *)) dlsym(en_lib_handle, "ENgetnodevalue");
-    if(!ENgetnodevalue)
-    {
-        std::string err = "Unable to find ENgetnodevalue function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENgetnodevalue_f = ENgetnodevalue;
-
-    int (*ENgetnodeid)(int, char*);
-    ENgetnodeid = (int (*) (int, char*)) dlsym(en_lib_handle, "ENgetnodeid");
-    if (!ENgetnodeid)
-    {
-        std::string err = "Unable to find ENgetnodeid function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENgetnodeid_f = ENgetnodeid;
-
-    int (*ENgetnodetype)(int, int*);
-    ENgetnodetype = (int (*)(int, int *)) dlsym(en_lib_handle, "ENgetnodetype");
-    if (!ENgetnodetype)
-    {
-        std::string err = "Unable to find ENgetnodetype function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENgetnodetype_f = ENgetnodetype;
-
-    int (*ENsetnodevalue)(int, int, float);
-    ENsetnodevalue = (int (*)(int, int, float)) dlsym(en_lib_handle, "ENsetnodevalue");
-    if (!ENsetnodevalue)
-    {
-        std::string err = "Unable to find ENsetnodevalue function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENsetnodevalue_f = ENsetnodevalue;
-
-    int (*ENgetcount)(int, int *);
-    ENgetcount = (int (*)(int, int *)) dlsym(en_lib_handle, "ENgetcount");
-    if (!ENgetcount)
-    {
-        std::string err = "Unable to find ENgetcount function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENgetcount_f = ENgetcount;
-
-    int (*ENgetpatternindex)(char *, int *);
-    ENgetpatternindex = (int (*)(char*, int*)) dlsym(en_lib_handle, "ENgetpatternindex");
-    if(!ENgetpatternindex)
-    {
-        std::string err = "Unable to find ENgetpatternindex function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENgetpatternindex_f = ENgetpatternindex;
-
-    int (*ENsetpattern)(int, float *, int);
-    ENsetpattern = (int (*)(int, float*, int)) dlsym(en_lib_handle, "ENsetpattern");
-    if (!ENsetpattern)
-    {
-        std::string err = "Unable to find ENsetpattern function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENsetpattern_f = ENsetpattern;
-
-    int (*ENsetpatternvalue)(int, int, float);
-    ENsetpatternvalue = (int(*)(int, int, float)) dlsym(en_lib_handle, "ENsetpatternvalue");
-    if(!ENsetpatternvalue)
-    {
-        std::string err = "Unable to find ENsetpatternvalue function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENsetpatternvalue_f = ENsetpatternvalue;
-
-    int (*ENinitH)(int);
-    ENinitH = (int (*)(int)) dlsym(en_lib_handle, "ENinitH");
-    if(!ENinitH)
-    {
-        std::string err = "Unable to find ENinitH function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENinitH_f = ENinitH;
-
-    int (*ENrunH)(long *);
-    ENrunH = (int (*)(long *)) dlsym(en_lib_handle, "ENrunH");
-    if ( !ENrunH)
-    {
-        std::string err = "Unable to find ENrunH function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENrunH_f = ENrunH;
-
-    int (*ENnextH)(long *);
-    ENnextH = (int (*)(long *)) dlsym(en_lib_handle, "ENnextH");
-    if (!ENnextH)
-    {
-        std::string err = "Unable to find ENnextH function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENnextH_f = ENnextH;
-
-    int (*ENsaveH)(void);
-    ENsaveH = (int (*)(void)) dlsym(en_lib_handle, "ENsaveH");
-    if (!ENsaveH)
-    {
-        std::string err = "Unable to find ENsaveH function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENsaveH_f = ENsaveH;
-
-    int (*ENresetreport)(void);
-    ENresetreport = (int (*)(void)) dlsym(en_lib_handle, "ENresetreport");
-    if (!ENresetreport)
-    {
-        std::string err = "Unable to find ENresetreport function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENresetreport_f = ENresetreport;
-
-    int (*ENsetreport)(char *);
-    ENsetreport = (int (*)(char *)) dlsym(en_lib_handle, "ENsetreport");
-    if (!ENsetreport)
-    {
-        std::string err = "Unable to find ENsetreport function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENsetreport_f = ENsetreport;
-
-    int (*ENreport)(void);
-    ENreport = (int (*)(void)) dlsym(en_lib_handle, "ENreport");
-    if (!ENreport)
-    {
-        std::string err = "Unable to find ENreport function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENreport_f = ENreport;
-
-    int (*ENsaveinpfile)(char *);
-    ENsaveinpfile = (int (*)(char *)) dlsym(en_lib_handle, "ENsaveinpfile");
-    if  (!ENsaveinpfile)
-    {
-        std::string err = "Unable to find ENsaveinpfile function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENsaveinpfile_f = ENsaveinpfile;
-
-    int (*ENgeterror)(int, char *, int);
-    ENgeterror = (int (*)(int, char*, int)) dlsym(en_lib_handle, "ENgeterror");
-    if (!ENgeterror)
-    {
-        std::string err = "Unable to find ENgeterror function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENgeterror_f = ENgeterror;
-
-    int (*ENcloseH)(void);
-    ENcloseH = (int (*)(void)) dlsym(en_lib_handle, "ENcloseH");
-    if(!ENcloseH)
-    {
-        std::string err = "Unable to find ENcloseH function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENcloseH_f = ENcloseH;
-
-    int (*ENclose)(void);
-    ENclose = (int (*)(void)) dlsym(en_lib_handle, "ENclose");
-    if (!ENclose)
-    {
-        std::string err = "Unable to find ENclose function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENclose_f = ENclose;
-
 }
 
 void
@@ -590,13 +303,13 @@ ENMultiObjEvaluator::getENInfo()
         switch (type_buffer)
         {
             case 0 :
-                node.type = JUNCTION;
+                node.type = ENLNK_JUNCTION;
                 break;
             case 1 :
-                node.type = RESERVOIR;
+                node.type = ENLNK_RESERVOIR;
                 break;
             case 2:
-                node.type = TANK;
+                node.type = ENLNK_TANK;
                 break;
         }
 
@@ -612,31 +325,31 @@ ENMultiObjEvaluator::getENInfo()
         switch (type_buffer)
         {
             case 0:
-                link.type = CVPIPE;
+                link.type = ENLNK_CVPIPE;
                 break;
             case 1:
-                link.type = PIPE;
+                link.type = ENLNK_PIPE;
                 break;
             case 2:
-                link.type = PUMP;
+                link.type = ENLNK_PUMP;
                 break;
             case 3:
-                link.type = PRV;
+                link.type = ENLNK_PRV;
                 break;
             case 4:
-                link.type = PSV;
+                link.type = ENLNK_PSV;
                 break;
             case 5:
-                link.type = PBV;
+                link.type = ENLNK_PBV;
                 break;
             case 6:
-                link.type = FCV;
+                link.type = ENLNK_FCV;
                 break;
             case 7:
-                link.type = TCV;
+                link.type = ENLNK_TCV;
                 break;
             case 8:
-                link.type = GPV;
+                link.type = ENLNK_GPV;
                 break;
         }
         errors(ENgetlinknodes_f(k, &(link.fromNode), &(link.toNode)));
@@ -1264,7 +977,7 @@ ENMultiObjEvaluator::evalResiliency()
         nPipe = 0;
         maxDiameter = 0;
         sumDiameter = 0;
-        if (node.type == JUNCTION)
+        if (node.type == ENLNK_JUNCTION)
         {
             BOOST_FOREACH(int link_index, node.connectedLinkIndices)
                         {
@@ -1291,7 +1004,7 @@ ENMultiObjEvaluator::evalResiliency()
     for (int i=1; i<=this->node_count; i++)
     {
         NodeInfo & node = this->nodes[i];
-        if (node.type == RESERVOIR)
+        if (node.type == ENLNK_RESERVOIR)
         {
             errors(ENgetnodevalue_f(node.index, EN_HEAD, &reservoir_head));
             errors(ENgetnodevalue_f(node.index, EN_DEMAND, &reservoir_discharge));

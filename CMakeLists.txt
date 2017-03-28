@@ -13,9 +13,14 @@ set(SOURCE_FILES
         ENMultiObjEvaluator.cpp
         ENMultiObjEvaluator.h
         OptParser.cpp
-        OptParser.h)
+        OptParser.h
+        InitialiseIbanezEN2.h
+        initialiseOwaEN2.h)
 
 add_library(EN2Link SHARED ${SOURCE_FILES})
 TARGET_LINK_LIBRARIES(EN2Link ${Boost_LIBRARIES})
 
 add_subdirectory(tests)
+add_subdirectory(Ibanez_EN2)
+add_subdirectory(OWA_EN2)
+add_subdirectory(OWA_EN3)
