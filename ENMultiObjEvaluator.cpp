@@ -263,8 +263,6 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
 
 
 
-
-
     //Check whether the input file exists...
     fs::path en_inp_path(this->ENFile);
     if (!fs::exists(en_inp_path))
@@ -290,16 +288,16 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
     fs::path en_report_path = this->workingDir / tmpReportName;
 
     //create the report and binary files...
-    reportFile_cstr.reset(new char[en_report_path.string().size() + 1]);strcpy
-            (reportFile_cstr.get(), en_report_path.c_str());
+    reportFile_cstr.reset(new char[en_report_path.string().size() + 1]);
+	strcpy(reportFile_cstr.get(), en_report_path.string().c_str());
 
     //Woprk out the location for the binary file...
     std::string tmpBinName = binaryFileName
                              + boost::lexical_cast< std::string >(dlOpenCount) + ".bin";
     fs::path en_bin_path = this->workingDir / tmpBinName;
 
-    binaryFile_cstr.reset(new char[en_bin_path.string().size() + 1]);strcpy
-            (binaryFile_cstr.get(), en_bin_path.c_str());
+    binaryFile_cstr.reset(new char[en_bin_path.string().size() + 1]);
+	strcpy(binaryFile_cstr.get(), en_bin_path.string().c_str());
 
 
     if (this->params->en_lib_version == OWA_EN2)
@@ -570,8 +568,11 @@ ENMultiObjEvaluator::errors(int err, std::string what)
         std::cerr << "\n EPANET2 ERROR CODE: " << err << std::endl;
         err_out << "\n EPANET2 ERROR CODE: " << err << std::endl;
         int nchar = 160;
-        char errorMsg[nchar + 1];this
-                ->errors(ENgeterror_f(err, errorMsg, nchar));
+
+        //char errorMsg[nchar + 1];
+		char errorMsg[161];
+		this->errors(ENgeterror(err, errorMsg, nchar));
+
         std::cerr << "\n\t MEANING: " << errorMsg << std::endl;
         err_out << "\n EPANET2 ERROR CODE: " << err << std::endl;
         std::cerr << "RELATED TO: " << what << std::endl;

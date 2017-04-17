@@ -7,6 +7,7 @@
 
 #define FUSION_MAX_VECTOR_SIZE 20
 
+#include <iostream>
 #include <fstream>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/config/warning_disable.hpp>
@@ -1073,7 +1074,7 @@ getObjectiveInput(boost::filesystem::path optFile)
     OptParser_SPtr readParams(new OptFileParser(data));
 
     //Now we read the file.
-    std::ifstream fin(optFile.c_str(), std::ios_base::in);
+    std::ifstream fin(optFile.string().c_str(), std::ios_base::in);
     if (fin.is_open())
     {
         //Start parsing the file - String to store the contents of the file

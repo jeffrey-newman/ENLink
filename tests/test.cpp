@@ -82,7 +82,7 @@ main(int argc, char* argv[])
     po::notify(vm);
     pathify(opt_file_path);
 
-    int analysis_id = createAnalysis(opt_file_path.second.c_str());
+    int analysis_id = createAnalysis(opt_file_path.second.string().c_str());
     int numDVs;
     int* dv_bounds = getDVBounds(analysis_id, &numDVs);
     std::vector<int> dv_bounds_vec(dv_bounds, dv_bounds+numDVs);
@@ -105,7 +105,7 @@ main(int argc, char* argv[])
 
     for (int j = 0; j < 1000; ++j)
     {
-        analysis_id = createAnalysis(opt_file_path.second.c_str());
+        analysis_id = createAnalysis(opt_file_path.second.string().c_str());
 
         //Generate a random dv vals.
         dv_vals.clear();
@@ -124,7 +124,7 @@ main(int argc, char* argv[])
     t.report();
 
     boost::timer::auto_cpu_timer t2;
-    analysis_id = createAnalysis(opt_file_path.second.c_str());
+    analysis_id = createAnalysis(opt_file_path.second.string().c_str());
     for (int j = 0; j < 1000; ++j)
     {
 //        int analysis_id = createAnalysis(opt_file_path.second.c_str());
