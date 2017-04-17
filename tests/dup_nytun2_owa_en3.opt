@@ -1,0 +1,112 @@
+[SPECIFICATION]
+Systems: Distribution
+Optimise: Pipes
+Objectives: Cost
+Constraints: Head 
+EpanetFile: "dup_nytun.inp"
+
+
+[PIPE_DATA]
+;-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+;ID     Description     RoughnessHeight(mm)     Diameter(mm)    Price($/m)	RepairCost($/m)      EmbodiedEnergy(GJ/m)     EmbodiedEnergy-Repairs(GJ/m)  GHG(tonnes/m)   TopCover(mm)    SideCover(mm)   BottomCover(mm)
+;-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DIA_000      NoPipe       10                    0               0      	     0                   0                        0                             0               0               0               0    
+DIA_036     DIA_36        100                   36              93.5	     0                   0                        0                             0               0               0               0 
+DIA_048     DIA_48        100                   48              134	         0                   0                        0                             0               0               0               0 
+DIA_060     DIA_60        100                   60              176	         0                   0                        0                             0               0               0               0 
+DIA_072     DIA_72        100                   72              221	         0                   0                        0                             0               0               0               0 
+DIA_084     DIA_84        100                   84              267	         0                   0                        0                             0               0               0               0 
+DIA_096     DIA_96        100                   96              316	         0                   0                        0                             0               0               0               0 
+DIA_108    DIA_108        100                   108             365	         0                   0                        0                             0               0               0               0 
+DIA_120    DIA_120        100                   120             417	         0                   0                        0                             0               0               0               0 
+DIA_132    DIA_132        100                   132             469	         0                   0                        0                             0               0               0               0 
+DIA_144    DIA_144        100                   144             522	         0                   0                        0                             0               0               0               0  
+DIA_156    DIA_156        100                   156             577	         0                   0                        0                             0               0               0               0  
+DIA_168    DIA_168        100                   168             632	         0                   0                        0                             0               0               0               0  
+DIA_180    DIA_180        100                   180             689	         0                   0                        0                             0               0               0               0  
+DIA_192    DIA_192        100                   192             746	         0                   0                        0                             0               0               0               0  
+DIA_204    DIA_204        100                   204             804	         0                   0                        0                             0               0               0               0 
+
+[LINK_GROUPS]
+; Each link group corresponds to a decision variable.
+; So you can optimise the diameter for a group of links in EN2, rather than just each link seperately. THis is helpful in some cases.
+; GroupID    epanetPipeDescs
+PG01     d1
+PG02     d2
+PG03     d3
+PG04     d4
+PG05     d5
+PG06     d6
+PG07     d7
+PG08     d8
+PG09     d9
+PG10    d10
+PG11    d11
+PG12    d12
+PG13    d13
+PG14    d14
+PG15    d15
+PG16    d16
+PG17    d17
+PG18    d18
+PG19    d19
+PG20    d20
+PG21    d21
+
+[PIPE_CHOICES]
+; GroupID PipeId
+PG01    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204
+PG02    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204     
+PG03    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204     
+PG04    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204     
+PG05    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204     
+PG06    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204     
+PG07    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204     
+PG08    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204     
+PG09    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204     
+PG10    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204
+PG11    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204
+PG12    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204
+PG13    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204
+PG14    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204
+PG15    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204
+PG16    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204
+PG17    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204
+PG18    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204
+PG19    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204
+PG20    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204
+PG21    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_096    DIA_108    DIA_120    DIA_132    DIA_144    DIA_156    DIA_168    DIA_180    DIA_192    DIA_204
+
+[EVALUATION]
+; Location of the epanet dll, 
+; My Mac
+EpanetLib: OWA_EPANET_Version3: "/Users/a1091793/Documents/Projects/EN2Link/build-cmake-debug/OWA_EN3/libowa_epanet3.dylib"
+; SuperComp
+;EpanetDylibloc         "./build/epanet2/libepanet2.so"
+
+[HEADS]
+1	300.00	310.00
+2      255.0    300.00  
+3      255.0    300.00          
+4      255.0    300.00
+5      255.0    300.00
+6      255.0    300.00
+7      255.0    300.00
+8      255.0    300.00
+9      255.0    300.00
+10     255.0    300.00
+11     255.0    300.00
+12     255.0    300.00
+13     255.0    300.00
+14     255.0    300.00
+15     255.0    300.00
+16     260.0    300.00
+17     272.8    300.00
+18     255.0    300.00
+19     255.0    300.00
+20     255.0    300.00
+ 
+ 
+
+
+

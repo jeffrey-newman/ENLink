@@ -24,6 +24,7 @@
  * Creates a new analysis. Each analysis has its own runtime loaded EN library.
  * @param opt_cfg_file The path of the file
  * @return A unique identifier for this analysis. Calls to this library use this identifier to get the cost, etc for the analysis intended.
+ * If this value is negative, this means an error occured during the creation of a new analysis.
  */
 DLLEXPORT int WINAPI
 createAnalysis(const char* opt_cfg_file);

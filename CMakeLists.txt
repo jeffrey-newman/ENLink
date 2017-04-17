@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(EN2Link)
+project(ENLink)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -8,17 +8,17 @@ FIND_PACKAGE(Boost 1.40 REQUIRED COMPONENTS filesystem system program_options ti
 include_directories(${Boost_INCLUDE_DIRS})
 
 set(SOURCE_FILES
-        EN2Link.cpp
-        EN2Link.h
+        ENLink.cpp
+        ENLink.h
         ENMultiObjEvaluator.cpp
         ENMultiObjEvaluator.h
         OptParser.cpp
         OptParser.h
         InitialiseIbanezEN2.h
-        initialiseOwaEN2.h)
+        InitialiseOwaEN2.h)
 
-add_library(EN2Link SHARED ${SOURCE_FILES})
-TARGET_LINK_LIBRARIES(EN2Link ${Boost_LIBRARIES})
+add_library(ENLink SHARED ${SOURCE_FILES})
+TARGET_LINK_LIBRARIES(ENLink ${Boost_LIBRARIES})
 
 add_subdirectory(tests)
 add_subdirectory(Ibanez_EN2)

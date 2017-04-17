@@ -28,6 +28,9 @@ struct DataManager
     static int getLinkType(int index, int* type, Network* nw);
     static int getLinkNodes(int index, int* fromNode, int* toNode, Network* nw);
     static int getLinkValue(int index, int param, double* value, Network* nw);
+
+    static int setNodeValue(int index, int param, double& value, Network* nw); //JN Added
+    static int setLinkValue(int index, int param, double& value, Network* nw); //JN Added
 };
 
 #endif // DATAMANAGER_H_

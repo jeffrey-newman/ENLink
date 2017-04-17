@@ -1,0 +1,13 @@
+//
+// Created by a1091793 on 14/4/17.
+//
+
+#ifndef EN2LINK_ENFUNCTFLT2DBL_H
+#define EN2LINK_ENFUNCTFLT2DBL_H
+
+
+
+
+
+
+#endif //EN2LINK_ENFUNCTFLT2DBL_H

@@ -60,6 +60,7 @@ class Link: public Element
     virtual double getResistance() {return 0.0;}
     virtual double getUnitHeadLoss();
     virtual double getSetting(Network* nw) { return setting; }
+    virtual void setSetting(Network* nw, double _setting) { setting = _setting; }
 
     // Computes head loss, energy usage, and leakage
     virtual void   findHeadLoss(Network* nw, double q) = 0;

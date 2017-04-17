@@ -42,19 +42,27 @@ createAnalysis(const char *opt_cfg_file)
 {
     ++max_analysis_id;
     boost::shared_ptr<ENMultiObjEvaluator> en2_analysis(new ENMultiObjEvaluator);
-
-    boost::filesystem::path config_file_path(opt_cfg_file);
-
-    if (!boost::filesystem::exists(config_file_path))
+    std::pair<std::map<int, AnalysisData>::iterator, bool> ret_val = analysis_map.insert(std::make_pair(max_analysis_id, AnalysisData(en2_analysis)));
+    if (ret_val.second)
     {
-        std::cerr << "Config file not found on filesystem: " << config_file_path << "\n";
+        boost::filesystem::path config_file_path(opt_cfg_file);
+
+        if (!boost::filesystem::exists(config_file_path))
+        {
+            std::cerr << "Config file not found on filesystem: " << config_file_path << "\n";
+            return (-1);
+        }
+
+        ret_val.first->second.evaluator->initialise(config_file_path);
+
+
+        return (max_analysis_id);
+    }
+    else
+    {
         return (-1);
     }
 
-    en2_analysis->initialise(config_file_path);
-    analysis_map.insert(std::make_pair(max_analysis_id, AnalysisData(en2_analysis)));
-
-    return (max_analysis_id);
 }
 
 int*

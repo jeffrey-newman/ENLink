@@ -6,9 +6,36 @@
 #include "ENMultiObjEvaluator.h"
 #include <dlfcn.h>
 
+class ENfunctFlt2Dbl
+{
+private:
+    boost::function<int (int, int, float*) >  en_flt_api_funct;
+    float val_f;
+    double val_d;
+public:
+
+    ENfunctFlt2Dbl(boost::function<int (int, int, float*) > & _en_flt_api_funct)
+            : en_flt_api_funct(_en_flt_api_funct)
+    {
+
+    }
+
+    int
+    operator()(int arg1, int arg2, double * arg3)
+    {
+        int ret = en_flt_api_funct(arg1, arg2, &val_f);
+        *arg3 = double(val_f);
+        return (ret);
+    }
+};
+
+
+
 void
 ENMultiObjEvaluator::initialise_OWA_EN2()
 {
+
+
     namespace fs = boost::filesystem;
 
     EN_ELEVATION    = 0;
@@ -190,7 +217,7 @@ ENMultiObjEvaluator::initialise_OWA_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENopen_f = ENopen;
+    ENopen_owa_en2_f = ENopen;
 
     int (*ENopenH)(void);
     ENopenH = (int (*)(void)) dlsym(en_lib_handle, "ENopenH"); //
@@ -201,7 +228,7 @@ ENMultiObjEvaluator::initialise_OWA_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENopenH_f = ENopenH;
+    ENopenH_owa_en2_f = ENopenH;
 
     int (*ENgetlinkindex)(char *, int *);
     ENgetlinkindex = (int (*)(char *, int*)) dlsym(en_lib_handle, "ENgetlinkindex");
@@ -231,6 +258,7 @@ ENMultiObjEvaluator::initialise_OWA_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
+    ENgetlinktype_f = ENgetlinktype;
 
     int (*ENgetlinknodes)(int, int*, int*);
     ENgetlinknodes = (int(*)(int, int*, int*)) dlsym(en_lib_handle, "ENgetlinknodes");
@@ -250,7 +278,12 @@ ENMultiObjEvaluator::initialise_OWA_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENgetlinkvalue_f = ENgetlinkvalue;
+    boost::function<int (int, int, float*)> ENgetlinkvalue_owa2_flt_f(ENgetlinkvalue);
+    ENfunctFlt2Dbl ENgetlinkvalue_owa2_fo(ENgetlinkvalue_owa2_flt_f);
+//    ENgetlinkvalue_owa2_flt_f = boost::function<int (int, int, float*)>(ENgetlinkvalue);
+//    ENgetlinkvalue_owa2_fo = ENfunctFlt2Dbl(ENgetlinkvalue_owa2_flt_f);
+    ENgetlinkvalue_f = ENgetlinkvalue_owa2_fo;
+//    ENgetlinkvalue_f = ENgetlinkvalue;
 
     int (*ENsetlinkvalue)(int, int, float);
     ENsetlinkvalue = (int(*)(int, int, float)) dlsym(en_lib_handle, "ENsetlinkvalue");
@@ -280,7 +313,10 @@ ENMultiObjEvaluator::initialise_OWA_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENgetnodevalue_f = ENgetnodevalue;
+    boost::function<int (int, int, float*)> ENgetnodevalue_owa2_flt_f(ENgetnodevalue);
+    ENfunctFlt2Dbl ENgetnodevalue_owa2_fo(ENgetnodevalue_owa2_flt_f);
+    ENgetnodevalue_f = ENgetnodevalue_owa2_fo;
+//    ENgetnodevalue_f = ENgetnodevalue;
 
     int (*ENgetnodeid)(int, char*);
     ENgetnodeid = (int (*) (int, char*)) dlsym(en_lib_handle, "ENgetnodeid");
@@ -360,7 +396,7 @@ ENMultiObjEvaluator::initialise_OWA_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENinitH_f = ENinitH;
+    ENinitH_f = boost::bind(ENinitH, 01);
 
     int (*ENrunH)(long *);
     ENrunH = (int (*)(long *)) dlsym(en_lib_handle, "ENrunH");
@@ -462,4 +498,33 @@ ENMultiObjEvaluator::initialise_OWA_EN2()
     }
     ENclose_f = ENclose;
 
+
+
+
+}
+
+void
+ENMultiObjEvaluator::open_OWA_EN2()
+{
+    //Open the toolkit and the input file in epanet
+    ENFile_cstr.reset(
+            new char[working_en_inp_path.string().size() + 1]);strcpy
+            (ENFile_cstr.get(), working_en_inp_path.c_str());
+
+    //std::cout << ENFile_cstr << std::endl;
+    errors(
+            ENopen_owa_en2_f(ENFile_cstr.get(), reportFile_cstr.get(),
+                     binaryFile_cstr.get()),
+            "opening EN inp file " + ENFile + " and report file "
+            + binaryFileName);
+    // OPen the hydraulic solution
+    errors(ENopenH_owa_en2_f(), "opening hydraulic solution");
+}
+
+void
+ENMultiObjEvaluator::close_OWA_EN2()
+{
+    this->errors(ENcloseH_f(), "closing hydraulic simulation");
+    this->errors(ENclose_f(), "closing OWA EN2 lib");
+//        this->errors(ENsaveH_f(), "Saving hydraulics");
 }

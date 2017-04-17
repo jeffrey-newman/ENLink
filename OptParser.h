@@ -415,6 +415,8 @@ struct NodeGroups {
 typedef std::pair<int, double> TarifPair;
 typedef std::map<int, double> TarifStructure;
 
+enum ENVersion{OWA_EN2, OWA_EN3, Ibanev_EN2};
+
 struct OptData {
     OptData();
 
@@ -497,6 +499,8 @@ struct OptData {
     double dailyPumpOpHours;
     double dayPeak_hourPeakRatio;
 
+    ENVersion en_lib_version;
+
     std::vector<std::string> *
     getOrNewLinkGroup(const std::string &name);
 
@@ -560,6 +564,7 @@ public:
             (), Skipper> isVelocityConstraint_rule;
     qi::rule<Str_it, std::string
             (), Skipper> en_inp_rule;
+
     qi::rule<Str_it, std::string
             (), Skipper> iuwmod_inp_rule;
 
@@ -750,8 +755,9 @@ public:
     qi::rule<Str_it, double
             (), Skipper> greywaterEE_rule;
     qi::rule <Str_it, Skipper> evaluation;
+    qi::rule<Str_it, Skipper> en_lib_rule;
     qi::rule<Str_it, std::string
-            (), Skipper> en_dll_rule;
+            (), Skipper> en_lib_path_rule;
 
     qi::rule<Str_it, std::string
             (), Skipper> iuwm_nodeext_rule;

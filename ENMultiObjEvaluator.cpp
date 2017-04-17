@@ -153,9 +153,35 @@ int EN_PUMPCOUNT;
 int EN_RESERVCOUNT;
 int EN_JUNCSCOUNT;
 
+//Additional variables in EN3
+//int EN_BASEDEMAND;
+int EN_EMITTERFLOW	;
+int EN_FULLDEMAND	;
+int EN_ACTUALDEMAND	;
+int EN_OUTFLOW		;
+int EN_LEAKCOEFF1	;
+int EN_LEAKCOEFF2	;
+int EN_LEAKAGE		;
+int EN_STARTDATE	;
+int EN_RULECOUNT	;
+int EN_RESVCOUNT	;
+int EN_QUALTOL		;
+int EN_HYDTOL		;
+int EN_MINPRESSURE	;
+int EN_MAXPRESSURE	;
+int EN_PRESSEXPON	;
+int EN_NETLEAKCOEFF1;
+int EN_NETLEAKCOEFF2;
+int EN_BASEPATTERN;
+int EN_NOINITFLOW;
 
+char     Msg[80];
+
+
+#include "ENFunctFlt2Dbl.h"
 #include "InitialiseIbanezEN2.h"
 #include "InitialiseOwaEN2.h"
+#include "InitialiseEN3.h"
 // --- Define the EPANET toolkit constants
 
 
@@ -169,6 +195,22 @@ ENMultiObjEvaluator::ENMultiObjEvaluator()
 
 ENMultiObjEvaluator::~ENMultiObjEvaluator()
 {
+    if (this->params->en_lib_version == OWA_EN2)
+    {
+        this->close_OWA_EN2();
+    }
+    else if(this->params->en_lib_version == OWA_EN3)
+    {
+        this->close_OWA_EN3();
+    }
+    else if(this->params->en_lib_version == Ibanev_EN2)
+    {
+        this->close_Ibanez_EN2();
+    }
+    else
+    {
+        std::cout << "Error: Epanet Library Version unspecified. Library path also probably not specified\n";
+    }
     // Close Ratings library
     if (dlclose(en_lib_handle) != 0) {
         printf("[%s] Problem closing library: %s", __FILE__, dlerror());
@@ -235,17 +277,12 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
     ++dlOpenCount;
 
     // Transfer a copy of the epanet input file to the working directory...
-    fs::path working_en_inp_path = this->workingDir
+    working_en_inp_path = this->workingDir
                                    / en_inp_path.filename();
     if (!fs::exists(working_en_inp_path))
     {
         fs::copy_file(en_inp_path, working_en_inp_path);
     }
-
-    //Open the toolkit and the input file in epanet
-    ENFile_cstr.reset(
-            new char[working_en_inp_path.string().size() + 1]);strcpy
-            (ENFile_cstr.get(), working_en_inp_path.c_str());
 
     //Work out the location for the report file....
     std::string tmpReportName = reportFileName
@@ -264,14 +301,26 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
     binaryFile_cstr.reset(new char[en_bin_path.string().size() + 1]);strcpy
             (binaryFile_cstr.get(), en_bin_path.c_str());
 
-    //std::cout << ENFile_cstr << std::endl;
-    errors(
-            ENopen_f(ENFile_cstr.get(), reportFile_cstr.get(),
-                   binaryFile_cstr.get()),
-            "opening EN inp file " + ENFile + " and report file "
-            + binaryFileName);
-    // OPen the hydraulic solution
-    errors(ENopenH_f(), "opening hydraulic solution");
+
+    if (this->params->en_lib_version == OWA_EN2)
+    {
+        this->initialise_OWA_EN2();
+        this->open_OWA_EN2();
+    }
+    else if(this->params->en_lib_version == OWA_EN3)
+    {
+        this->initialise_OWA_EN3();
+        this->open_OWA_EN3();
+    }
+    else if(this->params->en_lib_version == Ibanev_EN2)
+    {
+        this->initialise_Ibanez_EN2();
+        this->open_Ibanez_EN2();
+    }
+    else
+    {
+        std::cout << "Error: Epanet Library Version unspecified. Library path also probably not specified\n";
+    }
 
     // Determine the pipe indices for the links we are optimising choice of pipe for.
     this->setLinkIndices();
@@ -288,12 +337,39 @@ ENMultiObjEvaluator::getENInfo()
     errors(ENgetcount_f(EN_NODECOUNT, &(this->node_count)));
     errors(ENgetcount_f(EN_LINKCOUNT, &(this->link_count)));
 
-    nodes = std::vector<NodeInfo>(node_count+1);
-    links = std::vector<LinkInfo>(link_count+1);
+    nodes.resize(node_count+1);
+    links.resize(link_count+1);
 
     char id_buffer[16] = "";
     int type_buffer = 0;
-    for (int j = 1; j <= this->node_count; ++j)
+    int j, end_j, k, end_k;
+    if (this->params->en_lib_version == OWA_EN2)
+    {
+        j = 1;
+        end_j = this->node_count;
+        k = 1;
+        end_k = this->link_count;
+    }
+    else if(this->params->en_lib_version == OWA_EN3)
+    {
+        j = 0;
+        end_j = this->node_count - 1;
+        k = 0;
+        end_k = this->link_count - 1;
+    }
+    else if(this->params->en_lib_version == Ibanev_EN2)
+    {
+        j = 1;
+        end_j = this->node_count;
+        k = 1;
+        end_k = this->link_count;
+    }
+    else
+    {
+        std::cout << "Error: Epanet Library Version unspecified. Library path also probably not specified\n";
+    }
+
+    for (; j <= end_j; ++j)
     {
         NodeInfo& node = nodes[j];
         node.index = j;
@@ -315,7 +391,7 @@ ENMultiObjEvaluator::getENInfo()
 
     }
 
-    for (int k = 1; k <= this->link_count ; ++k)
+    for (; k <= end_k ; ++k)
     {
         LinkInfo& link = links[k];
         link.index = k;
@@ -562,7 +638,7 @@ ENMultiObjEvaluator::setPipeChoices(const int* dvs)
     PipeDataProperties * pipeChoiceData;
     const std::string * pipeGroupID;
 
-    float pipelength = 0;
+    double pipelength = 0;
     double totalLength = 0;
     double lengthAvgedDiameter = 0;
 
@@ -639,7 +715,7 @@ ENMultiObjEvaluator::evalPipes(const int* dvs)
     results.pipeRepairCost = 0;
     results.pipeEmbodiedEnergy = 0;
 
-    float length;
+    double length;
     std::string * pipeChoiceID;
     const std::string * pipeGroupID;
     PipeDataProperties * pipeChoiceData;
@@ -671,42 +747,30 @@ ENMultiObjEvaluator::evalPipes(const int* dvs)
             //std::cout << " link indice: " << linkIndices[*enPipe] << std::endl;
 
             //find length
-            this->errors(
-                    ENgetlinkvalue_f(linkIndices[*enLinkId], EN_LENGTH,
-                                   &length), *enLinkId);
+            this->errors(ENgetlinkvalue_f(linkIndices[*enLinkId], EN_LENGTH, &length), *enLinkId);
 
             //calculate cost
             if (params->isCostObj)
             {
-                results.pipeCapitalCost += (
-                                                   (params->FittingsCost > 0) ? (1
-                                                                                 + params->FittingsCost) :
-                                                   1) * (length * pipeChoiceData->cost); //The pipe cost
+                results.pipeCapitalCost += ((params->FittingsCost > 0) ? (1  + params->FittingsCost) : 1)
+                                           * (length * pipeChoiceData->cost); //The pipe cost
                 //calculate repair cost... for this pipe in one year
-                results.pipeRepairCost += (length
-                                           * pipeChoiceData->repairCost); //The pipe cost
-                results.pipeRepairEE +=
-                        (length * pipeChoiceData->repairEE);
+                results.pipeRepairCost += (length * pipeChoiceData->repairCost); //The pipe cost
+                results.pipeRepairEE += (length * pipeChoiceData->repairEE);
             }
             if (params->isEnergyObj)
             {
-                results.pipeEmbodiedEnergy += (
-                                                      (params->FittingsEE > 0) ? (1 + params->FittingsEE) :
-                                                      1) * (length * pipeChoiceData->embodiedEnergy); //The pipe cost
+                results.pipeEmbodiedEnergy += ((params->FittingsEE > 0) ? (1 + params->FittingsEE) : 1)
+                                              * (length * pipeChoiceData->embodiedEnergy); //The pipe cost
             }
 
             if (params->TrenchingCost > 0)
             {
-                double trenchVolume = ((pipeChoiceData->diameter
-                                        + 2 * pipeChoiceData->sideCover) / 1000) //trenching width - divide by 1000 to convert from mm to m
-                                      * ((pipeChoiceData->diameter
-                                          + pipeChoiceData->topCover
-                                          + pipeChoiceData->bottomCover) / 1000) //trenching depth - divide by 1000 to convert from mm to m
+                double trenchVolume = ((pipeChoiceData->diameter+ 2 * pipeChoiceData->sideCover) / 1000) //trenching width - divide by 1000 to convert from mm to m
+                                      * ((pipeChoiceData->diameter + pipeChoiceData->topCover + pipeChoiceData->bottomCover) / 1000) //trenching depth - divide by 1000 to convert from mm to m
                                       * length;
-                if (params->isCostObj) results.pipeCapitalCost +=
-                                               trenchVolume * params->TrenchingCost; // The trenching cost
-                if (params->isEnergyObj) results.pipeEmbodiedEnergy +=
-                                                 trenchVolume * params->trenchEE;
+                if (params->isCostObj) results.pipeCapitalCost += trenchVolume * params->TrenchingCost; // The trenching cost
+                if (params->isEnergyObj) results.pipeEmbodiedEnergy += trenchVolume * params->trenchEE;
             }
 
         }
@@ -756,7 +820,7 @@ void
 ENMultiObjEvaluator::evalPressurePenalty()
 {
 
-    float pressure = 0;
+    double pressure = 0;
 
     NodeConstraintsT::iterator pConstraint =
             params->pressure_constraints.begin();
@@ -810,7 +874,7 @@ void
 ENMultiObjEvaluator::evalHeadPenalty()
 {
 
-    float head = 0;
+    double head = 0;
 
     NodeConstraintsT::iterator hConstraint =
             params->head_constraints.begin();
@@ -866,7 +930,7 @@ ENMultiObjEvaluator::evalVelocityPenalty()
 {
 
 
-    float velocity = 0;
+    double velocity = 0;
 
     VelocityConstraintsT::iterator vConstraint =
             params->velocity_constraints.begin();
@@ -920,7 +984,7 @@ ENMultiObjEvaluator::evalHydraulicConstraints()
     long timeStep;
 
     //std::clog << "Initialising the Hydraulic engine" << std::endl;
-    if (!this->errors(ENinitH_f(01), "Init hydraulic engine 1"))
+    if (!this->errors(ENinitH_f(), "Init hydraulic engine 1"))
         throw std::runtime_error("unable to init H eng.");
     // Initialises the hydraulic engine. 1 indicates that flows are reinitialised abut no results are saved to file
     do
@@ -950,15 +1014,15 @@ ENMultiObjEvaluator::evalResiliency()
 {
 
     int nPipe;
-    float maxDiameter;
-    float sumDiameter;
-    float head_actual;
-    float head_required;
-    float demand;
-    float retrievedData;
-    float Cj;
-    float X = 0;
-    float Xmax = 0;
+    double maxDiameter;
+    double sumDiameter;
+    double head_actual;
+    double head_required;
+    double demand;
+    double retrievedData;
+    double Cj;
+    double X = 0;
+    double Xmax = 0;
 
 
     NodeConstraintsT::iterator hConstraint =
@@ -999,8 +1063,8 @@ ENMultiObjEvaluator::evalResiliency()
         }
     }
 
-    float reservoir_discharge;
-    float reservoir_head;
+    double reservoir_discharge;
+    double reservoir_head;
     for (int i=1; i<=this->node_count; i++)
     {
         NodeInfo & node = this->nodes[i];

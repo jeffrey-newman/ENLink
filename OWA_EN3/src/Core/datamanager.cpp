@@ -35,6 +35,10 @@ int getTankValue(int param, Node* node, double* value, Network* nw);
 int getQualSourceValue(int param, Node* node, double *value, Network* nw);
 int getPipeValue(int param, Link* link, double* value, Network* nw);
 
+int setTankValue(int param, Node* node, double& value, Network* nw);
+int setQualSourceValue(int param, Node* node, double& value, Network* nw);
+int setPipeValue(int param, Link* link, double& value, Network* nw);
+
 //-----------------------------------------------------------------------------
 
 int DataManager::getCount(int element, int* count, Network* nw)
@@ -167,6 +171,73 @@ int DataManager::getNodeValue(int index, int param, double* value, Network* nw)
 
 //-----------------------------------------------------------------------------
 
+int DataManager::setNodeValue(int index, int param, double& value, Network* nw)
+{
+
+    if ( index < 0 || index >= nw->count(Element::NODE) ) return 205;
+
+    double lcf = nw->ucf(Units::LENGTH);
+    double pcf = nw->ucf(Units::PRESSURE);
+    double qcf = nw->ucf(Units::FLOW);
+    double ccf = nw->ucf(Units::CONCEN);
+
+    Node* node = nw->node(index);
+    double dummy = 0.0;
+    switch (param)
+    {
+        case EN_ELEVATION:
+            node->elev = value / lcf;
+            break;
+
+        case EN_BASEDEMAND:   break;
+        case EN_BASEPATTERN:      break;
+
+        case EN_FULLDEMAND:
+            node->fullDemand = value / qcf;
+            break;
+
+//        case EN_ACTUALDEMAND:
+//            node->actualDemand = value / qcf;
+//            break;
+
+        case EN_OUTFLOW: break;
+//            double set_value = value;
+//            if ( node->type() != Node::JUNCTION ) set_value = -(value);
+//            node->outflow = value / qcf;
+//            break;
+
+        case EN_EMITTERFLOW:
+            break;
+
+        case EN_HEAD: break;
+//            *value = node->head * lcf;
+//            break;
+
+        case EN_PRESSURE: break;
+//            *value = (node->head - node->elev) * pcf;
+//            break;
+
+        case EN_INITQUAL:
+            node->initQual = value / ccf;
+            break;
+
+        case EN_QUALITY: break;
+//            *value = node->quality * ccf;
+//            break;
+
+        case EN_SOURCEQUAL: break;
+        case EN_SOURCEPAT: break;
+        case EN_SOURCETYPE: break;
+        case EN_SOURCEMASS: break;
+            return setQualSourceValue(param, node, value, nw);
+
+            // ... remaining node parameters apply only to Tanks
+        default: return setTankValue(param, node, value, nw);
+    }
+//    return 0;
+}
+
+//-----------------------------------------------------------------------------
 int DataManager::getLinkIndex(char* name, int* index, Network* nw)
 {
     *index = nw->indexOf(Element::LINK, name);
@@ -272,6 +343,53 @@ int DataManager::getLinkValue(int index, int param, double* value, Network* nw)
 
 //-----------------------------------------------------------------------------
 
+int DataManager::setLinkValue(int index, int param, double& value, Network* nw)
+{
+    if ( index < 0 || index >= nw->count(Element::LINK) ) return 205;
+    Link* link = nw->link(index);
+    switch (param)
+    {
+        case EN_DIAMETER:
+            link->diameter = value / nw->ucf(Units::DIAMETER);
+            break;
+        case EN_MINORLOSS:
+            link->lossCoeff = value;
+            break;
+        case EN_INITSTATUS:
+            link->initStatus = value;
+            break;
+        case EN_INITSETTING:
+            link->initSetting = value;
+            break;
+        case EN_FLOW: break;
+//            *value = link->flow * nw->ucf(Units::FLOW);
+//            break;
+        case EN_VELOCITY: break;
+//            *value = link->getVelocity() * nw->ucf(Units::LENGTH);
+//            break;
+        case EN_HEADLOSS: break;
+//            *value = link->hLoss * nw->ucf(Units::LENGTH);
+//            break;
+        case EN_STATUS:
+            link->status = value;
+            break;
+        case EN_SETTING:
+            link->setSetting(nw, value);
+            break;
+        case EN_ENERGY:
+            break;                         // TO BE ADDED
+        case EN_LINKQUAL: break;
+//            *value = link->quality * nw->ucf(Units::CONCEN);
+//            break;
+        case EN_LEAKAGE: break;
+//            *value = link->leakage * nw->ucf(Units::FLOW);
+//            break;
+        default: return setPipeValue(param, link, value, nw);
+    }
+    return 0;
+}
+
+//-----------------------------------------------------------------------------
 int getTankValue(int param, Node* node, double* value, Network* nw)
 {
     double lcf = nw->ucf(Units::LENGTH);
@@ -330,6 +448,63 @@ int getTankValue(int param, Node* node, double* value, Network* nw)
 }
 
 //-----------------------------------------------------------------------------
+int setTankValue(int param, Node* node, double& value, Network* nw)
+{
+    double lcf = nw->ucf(Units::LENGTH);
+    double vcf = lcf * lcf * lcf;
+    if ( node->type() != Node::TANK ) return 0;
+    Tank* tank = static_cast<Tank*>(node);
+    switch (param)
+    {
+//        case EN_TANKLEVEL:
+//            *value = (tank->head - tank->elev) * lcf;
+//            break;
+//        case EN_INITVOLUME:
+//            *value = tank->findVolume(tank->head) * vcf;
+//            break;
+        case EN_MIXMODEL:
+            tank->mixingModel.type = value;
+            break;
+//        case EN_MIXZONEVOL:
+//            *value = (tank->mixingModel.fracMixed * tank->maxVolume) * vcf;
+//            break;
+        case EN_TANKDIAM:
+            tank->diameter = value / lcf;
+            break;
+        case EN_MINVOLUME:
+            tank->minVolume = value / vcf;
+            break;
+//        case EN_VOLCURVE:
+//            if ( tank->volCurve )
+//            {
+//                string name = tank->volCurve->name;
+//                int index = nw->indexOf(Element::CURVE, name);
+//                *value = index;
+//                if ( index < 0 ) return 205;
+//            }
+//            else *value = -1.0;
+//            break;
+//        case EN_MINLEVEL:
+//            *value = (tank->minHead - tank->elev) * lcf;
+//            break;
+//        case EN_MAXLEVEL:
+//            *value = (tank->maxHead - tank->elev) * lcf;
+//            break;
+        case EN_MIXFRACTION:
+            tank->mixingModel.fracMixed = value;
+            break;
+        case EN_TANK_KBULK:
+            tank->bulkCoeff = value;
+            break;
+        case EN_TANKVOLUME:
+            tank->volume = value / vcf;
+            break;
+        default: return 203;
+    }
+    return 0;
+}
+
+//-----------------------------------------------------------------------------
 
 int getQualSourceValue(int param, Node* node, double *value, Network* nw)
 {
@@ -363,6 +538,37 @@ int getQualSourceValue(int param, Node* node, double *value, Network* nw)
 
 //-----------------------------------------------------------------------------
 
+int setQualSourceValue(int param, Node* node, double& value, Network* nw)
+{
+
+    if ( node->qualSource )
+    {
+        switch (param)
+        {
+            // ... base quality is stored in user units
+            case EN_SOURCEQUAL: node->qualSource->base = value; break;
+//            case EN_SOURCEPAT:
+//                if ( node->qualSource->pattern)
+//                {
+//                    string name = node->qualSource->pattern->name;
+//                    int index = nw->indexOf(Element::PATTERN, name);
+//                    *value = index;
+//                    if ( index < 0 ) return 205;
+//                }
+//                break;
+            case EN_SOURCETYPE: node->qualSource->type = value; break;
+//            case EN_SOURCEMASS:
+//                if ( node->qualSource->type == QualSource::MASS )
+//                    *value = node->qualSource->strength / 60.0;
+//                else *value = node->qualSource->strength * FT3perL;
+//                break;
+        }
+    }
+//    else if ( param == EN_SOURCEPAT ) *value = -1;
+    return 0;
+}
+//-----------------------------------------------------------------------------
+
 int getPipeValue(int param, Link* link, double* value, Network* nw)
 {
     double lcf = nw->ucf(Units::LENGTH);
@@ -390,6 +596,40 @@ int getPipeValue(int param, Link* link, double* value, Network* nw)
     case EN_LEAKCOEFF2:
         *value = pipe->leakCoeff2;
     default: return 203;
+    }
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+
+int setPipeValue(int param, Link* link, double& value, Network* nw)
+{
+    double lcf = nw->ucf(Units::LENGTH);
+    if ( link->type() != Link::PIPE ) return 0;
+    Pipe* pipe = static_cast<Pipe*>(link);
+    double set_value = value;
+    switch (param)
+    {
+        case EN_LENGTH:
+            pipe->length = set_value / lcf;
+            break;
+        case EN_ROUGHNESS:
+            if ( nw->option(Options::HEADLOSS_MODEL) == "D-W") set_value /= 1000.0 * lcf;
+            pipe->roughness = set_value;
+            break;
+        case EN_KBULK:
+            pipe->bulkCoeff = set_value ;
+            break;
+        case EN_KWALL:
+            pipe->wallCoeff = set_value ;
+            break;
+        case EN_LEAKCOEFF1:
+            pipe->leakCoeff1 = set_value;
+            break;
+        case EN_LEAKCOEFF2:
+            pipe->leakCoeff2 = set_value;
+        default: return 203;
     }
     return 0;
 }

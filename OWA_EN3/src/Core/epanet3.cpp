@@ -303,6 +303,11 @@ int EN_getNodeValue(int index, int param, double* value, EN_Project p)
     return DataManager::getNodeValue(index, param, value, project(p)->getNetwork());
 }
 
+int EN_setNodeValue(int index, int param, double value, EN_Project p)
+{
+    return DataManager::setNodeValue(index, param, value, project(p)->getNetwork());
+}
+
 //-----------------------------------------------------------------------------
 
 int EN_getLinkIndex(char* name, int* index, EN_Project p)
@@ -337,6 +342,11 @@ int EN_getLinkNodes(int index, int* fromNode, int* toNode, EN_Project p)
 int EN_getLinkValue(int index, int param, double* value, EN_Project p)
 {
    return DataManager::getLinkValue(index, param, value, project(p)->getNetwork());
+}
+
+int EN_setLinkValue(int index, int param, double value, EN_Project p)
+{
+    return DataManager::setLinkValue(index, param, value, project(p)->getNetwork());
 }
 
 

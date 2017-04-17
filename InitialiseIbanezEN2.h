@@ -6,14 +6,41 @@
 #include "ENMultiObjEvaluator.h"
 #include <dlfcn.h>
 #include <boost/bind.hpp>
+#include <boost/ref.hpp>
 
-#include "Ibanez_EN2/types.h"
-typedef struct _ENsimulation_t * ENsimulation_t;
-ENsimulation_t ibanez_simulation;
+
+
+
+class ENfunctFlt2DblIbanez
+{
+private:
+    boost::function<int (ENsimulation_t, int, int, float*) >  en_flt_api_funct;
+    float val_f;
+    double val_d;
+public:
+
+    ENfunctFlt2DblIbanez(boost::function<int (ENsimulation_t, int, int, float*) > & _en_flt_api_funct)
+    : en_flt_api_funct(_en_flt_api_funct)
+            {
+
+            }
+
+    int
+    operator()(ENsimulation_t ensim, int arg1, int arg2, double * arg3)
+    {
+        int ret = en_flt_api_funct(ensim, arg1, arg2, &val_f);
+        *arg3 = double(val_f);
+        return (ret);
+    }
+};
+
+
 
 void
 ENMultiObjEvaluator::initialise_Ibanez_EN2()
 {
+
+
 
     EN_ELEVATION    = 0;
     EN_BASEDEMAND   = 1;
@@ -119,6 +146,8 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
 
     namespace fs = boost::filesystem;
 
+
+
     err_out.open("en2_err.log",
                  std::ios_base::out | std::ios_base::app);
 
@@ -160,7 +189,7 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENopen_f = ENopen;
+    ENopen_Ibanev_f = ENopen;
 
     int (*ENopenH)(ENsimulation_t *);
     ENopenH = (int (*)(ENsimulation_t *)) dlsym(en_lib_handle, "ENopenH"); //
@@ -171,7 +200,7 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENopenH_f = boost::bind(ENopenH, &ibanez_simulation);
+    ENopenH_Ibanev_f = ENopenH;
 
     int (*ENgetlinkindex)(char *, int *);
     ENgetlinkindex = (int (*)(char *, int*)) dlsym(en_lib_handle, "ENgetlinkindex");
@@ -201,6 +230,7 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
+    ENgetlinktype_f = ENgetlinktype;
 
     int (*ENgetlinknodes)(int, int*, int*);
     ENgetlinknodes = (int(*)(int, int*, int*)) dlsym(en_lib_handle, "ENgetlinknodes");
@@ -220,7 +250,9 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENgetlinkvalue_f = boost::bind(ENgetlinkvalue, ibanez_simulation, _1, _2, _3);
+    boost::function<int (ENsimulation_t, int, int, float*)> ENgetlinkvalue_ibnz_flt_f(ENgetlinkvalue);
+    ENfunctFlt2DblIbanez ENgetlinkvalue_ibnz_fo(ENgetlinkvalue_ibnz_flt_f);
+    ENgetlinkvalue_f = boost::bind<int>(ENgetlinkvalue_ibnz_fo, boost::ref(ibanez_simulation), _1, _2, _3);
 
     int (*ENsetlinkvalue)(ENsimulation_t, int, int, float);
     ENsetlinkvalue = (int(*)(ENsimulation_t, int, int, float)) dlsym(en_lib_handle, "ENsetlinkvalue");
@@ -230,7 +262,7 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENsetlinkvalue_f = boost::bind(ENsetlinkvalue, ibanez_simulation, _1, _2, _3);
+    ENsetlinkvalue_f = boost::bind(ENsetlinkvalue, boost::ref(ibanez_simulation), _1, _2, _3);
 
     int (*ENgetnodeindex)(char *, int *);
     ENgetnodeindex = (int (*)(char *, int*)) dlsym(en_lib_handle, "ENgetnodeindex");
@@ -250,7 +282,9 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENgetnodevalue_f = boost::bind(ENgetnodevalue, ibanez_simulation, _1, _2, _3) ;
+    boost::function<int (ENsimulation_t, int, int, float*)> ENgetnodevalue_flt_f(ENgetnodevalue);
+    ENfunctFlt2DblIbanez ENgetnodevalue_fo(ENgetnodevalue_flt_f);
+    ENgetnodevalue_f = boost::bind<int>(ENgetnodevalue_fo, boost::ref(ibanez_simulation), _1, _2, _3);
 
 
     int (*ENgetnodeid)(int, char*);
@@ -273,15 +307,15 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
     }
     ENgetnodetype_f = ENgetnodetype;
 
-    int (*ENsetnodevalue)(int, int, float);
-    ENsetnodevalue = (int (*)(int, int, float)) dlsym(en_lib_handle, "ENsetnodevalue");
-    if (!ENsetnodevalue)
-    {
-        std::string err = "Unable to find ENsetnodevalue function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENsetnodevalue_f = ENsetnodevalue;
+//    int (*ENsetnodevalue)(int, int, float);
+//    ENsetnodevalue = (int (*)(int, int, float)) dlsym(en_lib_handle, "ENsetnodevalue");
+//    if (!ENsetnodevalue)
+//    {
+//        std::string err = "Unable to find ENsetnodevalue function in epanet library";
+//        std::cerr << err << std::endl;
+//        throw std::runtime_error(err);
+//    }
+//    ENsetnodevalue_f = ENsetnodevalue;
 
     int (*ENgetcount)(int, int *);
     ENgetcount = (int (*)(int, int *)) dlsym(en_lib_handle, "ENgetcount");
@@ -311,7 +345,7 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENsetpattern_f = boost::bind(ENsetpattern, ibanez_simulation, _1, _2, _3);
+    ENsetpattern_f = boost::bind(ENsetpattern, boost::ref(ibanez_simulation), _1, _2, _3);
 
     int (*ENsetpatternvalue)(ENsimulation_t, int, int, float);
     ENsetpatternvalue = (int(*)(ENsimulation_t, int, int, float)) dlsym(en_lib_handle, "ENsetpatternvalue");
@@ -321,7 +355,7 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENsetpatternvalue_f = boost::bind(ENsetpatternvalue, ibanez_simulation, _1, _2, _3);
+    ENsetpatternvalue_f = boost::bind(ENsetpatternvalue, boost::ref(ibanez_simulation), _1, _2, _3);
 
     int (*ENinitH)(ENsimulation_t, int);
     ENinitH = (int (*)(ENsimulation_t, int)) dlsym(en_lib_handle, "ENinitH");
@@ -331,7 +365,7 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENinitH_f = boost::bind(ENinitH, ibanez_simulation, _1);
+    ENinitH_f = boost::bind(ENinitH, boost::ref(ibanez_simulation), 01);
 
     int (*ENrunH)(ENsimulation_t, long *);
     ENrunH = (int (*)(ENsimulation_t, long *)) dlsym(en_lib_handle, "ENrunH");
@@ -341,7 +375,7 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENrunH_f = boost::bind(ENrunH, ibanez_simulation, _1);
+    ENrunH_f = boost::bind(ENrunH, boost::ref(ibanez_simulation), _1);
 
     int (*ENnextH)(ENsimulation_t, long *);
     ENnextH = (int (*)(ENsimulation_t, long *)) dlsym(en_lib_handle, "ENnextH");
@@ -351,57 +385,57 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENnextH_f = boost::bind(ENnextH, ibanez_simulation, _1);
+    ENnextH_f = boost::bind(ENnextH, boost::ref(ibanez_simulation), _1);
 
-    int (*ENsaveH)(void);
-    ENsaveH = (int (*)(void)) dlsym(en_lib_handle, "ENsaveH");
-    if (!ENsaveH)
-    {
-        std::string err = "Unable to find ENsaveH function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENsaveH_f = ENsaveH;
+//    int (*ENsaveH)(void);
+//    ENsaveH = (int (*)(void)) dlsym(en_lib_handle, "ENsaveH");
+//    if (!ENsaveH)
+//    {
+//        std::string err = "Unable to find ENsaveH function in epanet library";
+//        std::cerr << err << std::endl;
+//        throw std::runtime_error(err);
+//    }
+//    ENsaveH_f = ENsaveH;
 
-    int (*ENresetreport)(void);
-    ENresetreport = (int (*)(void)) dlsym(en_lib_handle, "ENresetreport");
-    if (!ENresetreport)
-    {
-        std::string err = "Unable to find ENresetreport function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENresetreport_f = ENresetreport;
+//    int (*ENresetreport)(void);
+//    ENresetreport = (int (*)(void)) dlsym(en_lib_handle, "ENresetreport");
+//    if (!ENresetreport)
+//    {
+//        std::string err = "Unable to find ENresetreport function in epanet library";
+//        std::cerr << err << std::endl;
+//        throw std::runtime_error(err);
+//    }
+//    ENresetreport_f = ENresetreport;
 
-    int (*ENsetreport)(char *);
-    ENsetreport = (int (*)(char *)) dlsym(en_lib_handle, "ENsetreport");
-    if (!ENsetreport)
-    {
-        std::string err = "Unable to find ENsetreport function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENsetreport_f = ENsetreport;
+//    int (*ENsetreport)(char *);
+//    ENsetreport = (int (*)(char *)) dlsym(en_lib_handle, "ENsetreport");
+//    if (!ENsetreport)
+//    {
+//        std::string err = "Unable to find ENsetreport function in epanet library";
+//        std::cerr << err << std::endl;
+//        throw std::runtime_error(err);
+//    }
+//    ENsetreport_f = ENsetreport;
+//
+//    int (*ENreport)(void);
+//    ENreport = (int (*)(void)) dlsym(en_lib_handle, "ENreport");
+//    if (!ENreport)
+//    {
+//        std::string err = "Unable to find ENreport function in epanet library";
+//        std::cerr << err << std::endl;
+//        throw std::runtime_error(err);
+//    }
+//    ENreport_f = ENreport;
 
-    int (*ENreport)(void);
-    ENreport = (int (*)(void)) dlsym(en_lib_handle, "ENreport");
-    if (!ENreport)
-    {
-        std::string err = "Unable to find ENreport function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENreport_f = ENreport;
-
-    int (*ENsaveinpfile)(char *);
-    ENsaveinpfile = (int (*)(char *)) dlsym(en_lib_handle, "ENsaveinpfile");
-    if  (!ENsaveinpfile)
-    {
-        std::string err = "Unable to find ENsaveinpfile function in epanet library";
-        std::cerr << err << std::endl;
-        throw std::runtime_error(err);
-    }
-    ENsaveinpfile_f = ENsaveinpfile;
+//    int (*ENsaveinpfile)(char *);
+//    ENsaveinpfile = (int (*)(char *)) dlsym(en_lib_handle, "ENsaveinpfile");
+//    if  (!ENsaveinpfile)
+//    {
+//        std::string err = "Unable to find ENsaveinpfile function in epanet library";
+//        std::cerr << err << std::endl;
+//        throw std::runtime_error(err);
+//    }
+//    ENsaveinpfile_f = ENsaveinpfile;
 
     int (*ENgeterror)(int, char *, int);
     ENgeterror = (int (*)(int, char*, int)) dlsym(en_lib_handle, "ENgeterror");
@@ -413,15 +447,15 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
     }
     ENgeterror_f = ENgeterror;
 
-    int (*ENcloseH)(void);
-    ENcloseH = (int (*)(void)) dlsym(en_lib_handle, "ENcloseH");
+    int (*ENcloseH)(ENsimulation_t);
+    ENcloseH = (int (*)(ENsimulation_t)) dlsym(en_lib_handle, "ENcloseH");
     if(!ENcloseH)
     {
         std::string err = "Unable to find ENcloseH function in epanet library";
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }
-    ENcloseH_f = ENcloseH;
+    ENcloseH_f = boost::bind(ENcloseH, boost::ref(ibanez_simulation));
 
     int (*ENclose)(void);
     ENclose = (int (*)(void)) dlsym(en_lib_handle, "ENclose");
@@ -433,4 +467,46 @@ ENMultiObjEvaluator::initialise_Ibanez_EN2()
     }
     ENclose_f = ENclose;
 
+    //Open the toolkit and the input file in epanet
+//    ENFile_cstr.reset(
+//            new char[working_en_inp_path.string().size() + 1]);strcpy
+//            (ENFile_cstr.get(), working_en_inp_path.c_str());
+//
+//    //std::cout << ENFile_cstr << std::endl;
+//    errors(
+//            ENopen_f(ENFile_cstr.get(), reportFile_cstr.get(),
+//                     binaryFile_cstr.get()),
+//            "opening EN inp file " + ENFile + " and report file "
+//            + binaryFileName);
+//    // OPen the hydraulic solution
+//    errors(ENopenH_f(), "opening hydraulic solution");
+
+}
+
+
+void
+ENMultiObjEvaluator::open_Ibanez_EN2()
+{
+    //Open the toolkit and the input file in epanet
+    ENFile_cstr.reset(
+            new char[working_en_inp_path.string().size() + 1]);strcpy
+            (ENFile_cstr.get(), working_en_inp_path.c_str());
+
+    //std::cout << ENFile_cstr << std::endl;
+    errors(
+            ENopen_Ibanev_f(ENFile_cstr.get(), reportFile_cstr.get(),
+                             binaryFile_cstr.get()),
+            "opening EN inp file " + ENFile + " and report file "
+            + binaryFileName);
+    // OPen the hydraulic solution
+    errors(ENopenH_Ibanev_f(&ibanez_simulation), "opening hydraulic solution");
+}
+
+
+void
+ENMultiObjEvaluator::close_Ibanez_EN2()
+{
+    this->errors(ENcloseH_f(), "closing hydraulic simulation");
+    this->errors(ENclose_f(), "closing OWA EN2 lib");
+//        this->errors(ENsaveH_f(), "Saving hydraulics");
 }

@@ -186,10 +186,10 @@ int        EN_initSolver(int initFlows, EN_Project p);
 int        EN_runSolver(int* t, EN_Project p);
 int        EN_advanceSolver(int* dt, EN_Project p);
 
-int        EN_openOutputFile(const char* fname, EN_Project p);
+int        EN_openOutput(const char* fname, EN_Project p);
 int        EN_saveOutput(EN_Project p);
 
-int        EN_openReportFile(const char* fname, EN_Project p);
+int        EN_openReport(const char* fname, EN_Project p);
 int        EN_writeReport(EN_Project p);
 int        EN_writeSummary(EN_Project p);
 int        EN_writeResults(int t, EN_Project p);
@@ -206,6 +206,12 @@ int        EN_getLinkId(int, char *, EN_Project);
 int        EN_getLinkType(int, int *, EN_Project);
 int        EN_getLinkNodes(int, int *, int *, EN_Project);
 int        EN_getLinkValue(int, int, double *, EN_Project);
+
+
+//JN Added set functions
+int       EN_setNodeValue(int, int, double, EN_Project);
+int       EN_setLinkValue(int, int, double, EN_Project);
+
 
 //==================================================================================
 /*        TO BE ADDED
