@@ -405,9 +405,13 @@ OptFileParser::init() {
             >> double_then_end_of_line[phoenix::ref(optData->GreywaterEE) = _1];
     //en_dll_rule = lit("EpanetDylibLoc") >> lexeme[lit("\"") >> (char_ - lit("\"")) >> lit("\"") >> *(space - eol) >> eol];/*[phoenix::ref(epanet_dylib_loc) = _1]*/;
     //en_dll_rule = lit("EpanetDylibLoc") >> white_seperated_string;/*[phoenix::ref(epanet_dylib_loc) = _1]*/;
-    en_dll_rule =
-            lit("EpanetDylibLoc")
-                    >> lexeme['\"' >> +(char_ - '\"') >> '\"' /*>> *(space - eol) >> eol*/]
+
+    en_lib_rule = lit("EpanetLib:") >> (lit("OWA_EPANET_Version2:")[phoenix::ref(optData->en_lib_version) = OWA_EN2]
+                  | lit("OWA_EPANET_Version3:")[phoenix::ref(optData->en_lib_version) = OWA_EN3]
+                  | lit("Ibanevs_EPANET:")[phoenix::ref(optData->en_lib_version) = Ibanev_EN2])
+                          >> en_lib_path_rule[phoenix::ref(optData->epanet_dylib_loc) = _1];
+
+    en_lib_path_rule = lexeme['\"' >> +(char_ - '\"') >> '\"' /*>> *(space - eol) >> eol*/]
                        - headers;
     iuwm_nodeext_rule =
             lit("IUWMod_NodeExt_Loc")
@@ -493,7 +497,7 @@ OptFileParser::init() {
                                         | fittingsEE_rule //
                                         | greywaterSysCost_rule //
                                         | houseConnectionsCost_rule | greywaterEE_rule //
-                                        | en_dll_rule[phoenix::ref(optData->epanet_dylib_loc) = _1] //
+                                        | en_lib_rule //
                                         | iuwm_nodeext_rule[phoenix::ref(optData->iuwmod_nodeext_loc) = _1] //
                                         | iuwm_linkext_rule[phoenix::ref(optData->iuwmod_linkext_loc) = _1] //
                                         | trenchEE_rule //

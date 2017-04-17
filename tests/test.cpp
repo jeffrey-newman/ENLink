@@ -86,8 +86,19 @@ main(int argc, char* argv[])
     int numDVs;
     int* dv_bounds = getDVBounds(analysis_id, &numDVs);
     std::vector<int> dv_bounds_vec(dv_bounds, dv_bounds+numDVs);
-    clear(analysis_id);
+
     //Generate a random dv vals.
+    std::vector<int> dv_vals;
+    std::default_random_engine generator;
+    for (int i = 0; i < numDVs; ++i)
+    {
+        std::uniform_int_distribution<int> distribution(0, (dv_bounds_vec[i] -1));
+        dv_vals.push_back(distribution(generator));
+    }
+
+    int err_code = runEN(analysis_id, dv_vals.data());
+    double cost = getPipeCapitalCost(analysis_id);
+    clear(analysis_id);
 
 
     boost::timer::auto_cpu_timer t;
@@ -97,7 +108,7 @@ main(int argc, char* argv[])
         analysis_id = createAnalysis(opt_file_path.second.string().c_str());
 
         //Generate a random dv vals.
-        std::vector<int> dv_vals;
+        dv_vals.clear();
         std::default_random_engine generator;
         for (int i = 0; i < numDVs; ++i)
         {

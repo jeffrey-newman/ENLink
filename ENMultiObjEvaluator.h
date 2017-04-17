@@ -11,8 +11,10 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/scoped_array.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/function.hpp>
 #include "OptParser.h"
 
+#include "Ibanez_EN2/types.h"
 
 struct PipeEvalData
 {
@@ -198,26 +200,41 @@ struct Results
     TankResultsInfo net_tank_results;
 };
 
-enum NodeType{JUNCTION, RESERVOIR, TANK};
+enum ENLinkNodeType{ENLNK_JUNCTION, ENLNK_RESERVOIR, ENLNK_TANK};
 
-struct NodeInfo
+ struct NodeInfo
 {
     std::string id;
-    NodeType type;
+    ENLinkNodeType type;
     int index;
     std::vector<int> connectedLinkIndices;
+     NodeInfo()
+             : id("null"), type(ENLNK_JUNCTION), index(-1), connectedLinkIndices(0)
+     {
+
+     }
 };
 
-enum LinkType{CVPIPE, PIPE, PUMP, PRV, PSV, PBV, FCV, TCV, GPV};
+enum ENLinkLinkType{ENLNK_CVPIPE, ENLNK_PIPE, ENLNK_PUMP, ENLNK_PRV, ENLNK_PSV, ENLNK_PBV, ENLNK_FCV, ENLNK_TCV, ENLNK_GPV};
 
 struct LinkInfo
 {
     std::string id;
-    LinkType  type;
+    ENLinkLinkType  type;
     int index;
     int fromNode;
     int toNode;
+    LinkInfo()
+            :id("null"), type(ENLNK_PIPE), index(-1), fromNode(-1), toNode(-1)
+    {
+
+    }
 };
+
+
+typedef void * EN_Project;
+typedef struct _ENsimulation_t * ENsimulation_t;
+
 
 class ENMultiObjEvaluator {
 
@@ -330,63 +347,36 @@ private:
     errors(int err, std::string what = "");
 
     //Function pointers in the epanet library
-    int (*ENopen)(char *, char *, char *);
+//    boost::function<int (char*, char*, char*) > ENopen_f;
+//    boost::function<int (void) > ENopenH_f;
+// The above functions are now just local to the initialisation routines for each version of en3.
 
-    int (*ENopenH)(void);
-
-    int (*ENgetlinkindex)(char *, int *);
-
-    int (*ENgetlinkid)(int, char*);
-
-    int (*ENgetlinktype)(int, int*);
-
-    int (*ENgetlinknodes)(int, int*, int*);
-
-    int (*ENsetlinkvalue)(int, int, float);
-
-    int (*ENgetlinkvalue)(int, int, float *);
-
-
-
-    int (*ENgetnodeindex)(char *, int *);
-
-    int (*ENgetnodevalue)(int, int, float *);
-
-    int (*ENgetnodeid)(int, char*);
-
-    int (*ENgetnodetype)(int, int*);
-
-    int (*ENsetnodevalue)(int, int, float);
-
-    int (*ENgetcount)(int, int *);
-
-    int (*ENgetpatternindex)(char *, int *);
-
-    int (*ENsetpattern)(int, float *, int);
-
-    int (*ENsetpatternvalue)(int, int, float);
-
-    int (*ENinitH)(int);
-
-    int (*ENrunH)(long *);
-
-    int (*ENnextH)(long *);
-
-    int (*ENsaveH)(void);
-
-    int (*ENresetreport)(void);
-
-    int (*ENsetreport)(char *);
-
-    int (*ENreport)(void);
-
-    int (*ENsaveinpfile)(char *);
-
-    int (*ENgeterror)(int, char *, int);
-
-    int (*ENcloseH)(void);
-
-    int (*ENclose)(void);
+    boost::function<int (char*, int*) > ENgetlinkindex_f;
+    boost::function<int (int, char*) > ENgetlinkid_f;
+    boost::function<int (int, int*) > ENgetlinktype_f;
+    boost::function<int (int, int*, int*) > ENgetlinknodes_f;
+    boost::function<int (int, int, double) > ENsetlinkvalue_f;
+    boost::function<int (int, int, double *) > ENgetlinkvalue_f;
+    boost::function<int (char *, int *) > ENgetnodeindex_f;
+    boost::function<int (int, int, double *) > ENgetnodevalue_f;
+    boost::function<int (int, char *) > ENgetnodeid_f;
+    boost::function<int (int, int*) > ENgetnodetype_f;
+    boost::function<int (int, int, double) > ENsetnodevalue_f;
+    boost::function<int (int, int *) > ENgetcount_f;
+    boost::function<int (char *, int *) > ENgetpatternindex_f;
+    boost::function<int (int, float *, int) > ENsetpattern_f;
+    boost::function<int (int, int, double) > ENsetpatternvalue_f;
+    boost::function<int (void) > ENinitH_f;
+    boost::function<int (long *) > ENrunH_f;
+    boost::function<int ( long *) > ENnextH_f;
+    boost::function<int (void) > ENsaveH_f;
+    boost::function<int (void) > ENresetreport_f;
+    boost::function<int (char *) > ENsetreport_f;
+    boost::function<int (void) > ENreport_f;
+    boost::function<int (char *) > ENsaveinpfile_f;
+    boost::function<int (int, char *, int) > ENgeterror_f;
+    boost::function<int (void) > ENcloseH_f;
+    boost::function<int (void) > ENclose_f;
 
     std::map< std::string, int > linkIndices;
     std::map< std::string, int > nodeIndices;
@@ -418,10 +408,40 @@ private:
     std::vector<NodeInfo> nodes;
     std::vector<LinkInfo> links;
 
+    void initialise_OWA_EN2();
+    void initialise_OWA_EN3();
+    void initialise_Ibanez_EN2(); //http://lopez-ibanez.eu/epanet-thread-safe
+
+    void open_OWA_EN2();
+    void open_OWA_EN3();
+    void open_Ibanez_EN2(); //http://lopez-ibanez.eu/epanet-thread-safe
+
+    void close_OWA_EN2();
+    void close_OWA_EN3();
+    void close_Ibanez_EN2(); //http://lopez-ibanez.eu/epanet-thread-safe
+
     void setLinkIndices();
     void setNodeIndices();
     void getENInfo();
 
+    boost::filesystem::path working_en_inp_path;
+
+
+
+    EN_Project en3_simulation;
+    ENsimulation_t ibanez_simulation;
+
+    boost::function<EN_Project (void) > EN_createProject_OWA_EN3_f;
+    boost::function<int (const char *, EN_Project) > EN_openOutput_OWA_EN3_f;
+    boost::function<int (const char *, EN_Project) > EN_openReport_OWA_EN3_f;
+    boost::function<int (const char *, EN_Project) > EN_loadProject_OWA_EN3_f;
+//    boost::function<int (int, EN_Project) > EN_initSolver_OWA_EN3_f;
+
+    boost::function<int (char*, char*, char*) > ENopen_owa_en2_f;
+    boost::function<int (void) > ENopenH_owa_en2_f;
+
+    boost::function<int (char*, char*, char*) > ENopen_Ibanev_f;
+    boost::function<int (ENsimulation_t *) > ENopenH_Ibanev_f;
 
 };
 
