@@ -489,14 +489,14 @@ ENMultiObjEvaluator::open_Ibanez_EN2()
 {
     //Open the toolkit and the input file in epanet
     ENFile_cstr.reset(
-            new char[working_en_inp_path.string().size() + 1]);strcpy
-            (ENFile_cstr.get(), working_en_inp_path.c_str());
+            new char[en_inp_path.string().size() + 1]);strcpy
+            (ENFile_cstr.get(), en_inp_path.c_str());
 
     //std::cout << ENFile_cstr << std::endl;
     errors(
             ENopen_Ibanev_f(ENFile_cstr.get(), reportFile_cstr.get(),
                              binaryFile_cstr.get()),
-            "opening EN inp file " + ENFile + " and report file "
+            "opening EN inp file " + en_inp_path.string() + " and report file "
             + binaryFileName);
     // OPen the hydraulic solution
     errors(ENopenH_Ibanev_f(&ibanez_simulation), "opening hydraulic solution");

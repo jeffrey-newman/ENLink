@@ -38,6 +38,16 @@ int max_analysis_id = -1;
 std::map<int, AnalysisData> analysis_map;
 boost::filesystem::path working_dir = "no_path";
 
+int
+setWorkingDir(const char* _working_dir)
+{
+    working_dir = _working_dir;
+    if (!boost::filesystem::exists(working_dir))
+    {
+        return -1;
+    }
+    return 0;
+}
 
 int
 createAnalysis(const char *opt_cfg_file)
@@ -60,7 +70,7 @@ createAnalysis(const char *opt_cfg_file)
             return (-1);
         }
 
-        ret_val.first->second.evaluator->initialise(config_file_path);
+        ret_val.first->second.evaluator->initialise(config_file_path, working_dir);
 
 
         return (max_analysis_id);

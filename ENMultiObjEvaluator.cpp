@@ -175,7 +175,8 @@ int EN_NETLEAKCOEFF2;
 int EN_BASEPATTERN;
 int EN_NOINITFLOW;
 
-char     Msg[80];
+int evaluator_id = 0;
+
 
 
 #include "ENFunctFlt2Dbl.h"
@@ -237,19 +238,9 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path, boost::fil
         params = getObjectiveInput(opt_cfg_path);
 
     // Copy project directory into working directory
-    std::string temp_dir_template = "WDSOpt_worker" + std::to_string(params.evaluator_id) + "_%%%%-%%%%";
-    params.working_dir.second = boost::filesystem::unique_path(params.working_dir.second / temp_dir_template);
-    params.working_dir.first = params.working_dir.second.string();
-    copyDir(params.template_project_dir.second, params.working_dir.second);
-
-
-
-
-    ENFile = params->epanetFile;
-        epanet_dylib_loc = params->epanet_dylib_loc;
-
-    this->working_dir = _working_dir;
-        if (!fs::exists(this->working_dir))
+    std::string temp_dir_template = "WDSOpt_worker" + std::to_string(evaluator_id++) + "_%%%%-%%%%";
+    working_dir = boost::filesystem::unique_path(_working_dir / temp_dir_template);
+    if (!fs::exists(this->working_dir))
     {
         if (!fs::create_directories(this->working_dir))
         {
@@ -258,52 +249,31 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path, boost::fil
             throw std::runtime_error(err);
         }
     }
-
-    //Copy inp file to dir
-    fs::c
-
-
-//    }
-
-
-
-//    if (!fs::exists(this->outputDir))
-//    {
-//        if (!fs::create_directories(this->outputDir))
-//        {
-//            std::string err = "Unable to create EN working directory: "
-//                              + this->outputDir.string();
-//            throw std::runtime_error(err);
-//        }
-//    }
-//
-
-
-
-
-    //Check whether the input file exists...
-    fs::path en_inp_path(this->ENFile);
-    if (!fs::exists(en_inp_path))
+    boost::filesystem::path epanet_file_path(params->epanetFile);
+    if (!fs::exists(epanet_file_path))
     {
         std::string err = "Epanet input file does not exist: "
                           + en_inp_path.string();
         throw std::runtime_error(err);
     }
+    en_inp_path = working_dir / epanet_file_path.filename();
+    boost::filesystem::copy_file(epanet_file_path, en_inp_path);
+
+    epanet_dylib_path = params->epanet_dylib_loc;
+    if (!fs::exists(epanet_dylib_path))
+    {
+        std::string err = "Epanet library does not exist at: "
+                          + epanet_dylib_path.string();
+        throw std::runtime_error(err);
+    }
+
 
     ++dlOpenCount;
-
-    // Transfer a copy of the epanet input file to the working directory...
-    working_en_inp_path = this->working_dir
-                                   / en_inp_path.filename();
-    if (!fs::exists(working_en_inp_path))
-    {
-        fs::copy_file(en_inp_path, working_en_inp_path);
-    }
 
     //Work out the location for the report file....
     std::string tmpReportName = reportFileName
                                 + boost::lexical_cast< std::string >(dlOpenCount) + ".rpt";
-    fs::path en_report_path = this->working_dir / tmpReportName;
+    en_report_path = this->working_dir / tmpReportName;
 
     //create the report and binary files...
     reportFile_cstr.reset(new char[en_report_path.string().size() + 1]);
@@ -312,7 +282,7 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path, boost::fil
     //Woprk out the location for the binary file...
     std::string tmpBinName = binaryFileName
                              + boost::lexical_cast< std::string >(dlOpenCount) + ".bin";
-    fs::path en_bin_path = this->working_dir / tmpBinName;
+    en_bin_path = this->working_dir / tmpBinName;
 
     binaryFile_cstr.reset(new char[en_bin_path.string().size() + 1]);
 	strcpy(binaryFile_cstr.get(), en_bin_path.string().c_str());

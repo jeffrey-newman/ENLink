@@ -566,14 +566,14 @@ ENMultiObjEvaluator::open_OWA_EN3()
 {
     //Open the toolkit and the input file in epanet
     ENFile_cstr.reset(
-            new char[working_en_inp_path.string().size() + 1]);strcpy
-            (ENFile_cstr.get(), working_en_inp_path.c_str());
+            new char[en_inp_path.string().size() + 1]);strcpy
+            (ENFile_cstr.get(), en_inp_path.c_str());
 
     //std::cout << ENFile_cstr << std::endl;
 
     en3_simulation = EN_createProject_OWA_EN3_f();
-    errors(EN_openReport_OWA_EN3_f(reportFile_cstr.get(), en3_simulation), "Oppening report file " + reportFileName );
-    errors(EN_loadProject_OWA_EN3_f(ENFile_cstr.get(), en3_simulation), "opening EN inp file " + ENFile);
+    errors(EN_openReport_OWA_EN3_f(reportFile_cstr.get(), en3_simulation), "Opening report file " + reportFileName );
+    errors(EN_loadProject_OWA_EN3_f(ENFile_cstr.get(), en3_simulation), "opening EN inp file " + en_inp_path.string());
     errors(EN_openOutput_OWA_EN3_f(binaryFile_cstr.get(), en3_simulation), "opening EN binary file" + binaryFileName);
 //    errors(EN_initSolver_OWA_EN3_f(EN_NOINITFLOW, en3_simulation), "Initialising EN3 solver");
 

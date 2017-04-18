@@ -105,7 +105,7 @@
 
 #define   t_FUNCCALL    "function call"
 
-char *geterrmsg(int errcode)
+char *geterrmsg(int errcode, char* Msg)
 /*----------------------------------------------------------------
 **  Input:   errcode = error code
 **  Output:  none
@@ -176,6 +176,7 @@ char *geterrmsg(int errcode)
 
 int  EN3geterror(int errcode, char *errmsg, int n)
 {
+    char     Msg[80];
     switch (errcode)
     {
         case 1:  strncpy(errmsg,WARN1,n);   break;
@@ -184,7 +185,7 @@ int  EN3geterror(int errcode, char *errmsg, int n)
         case 4:  strncpy(errmsg,WARN4,n);   break;
         case 5:  strncpy(errmsg,WARN5,n);   break;
         case 6:  strncpy(errmsg,WARN6,n);   break;
-        default: strncpy(errmsg,geterrmsg(errcode),n);
+        default: strncpy(errmsg,geterrmsg(errcode, Msg),n);
     }
     if (strlen(errmsg) == 0) return(251);
     else return(0);

@@ -253,7 +253,7 @@ public:
     ~ENMultiObjEvaluator();
 
     void
-    initialise(boost::filesystem::path config_file);
+    initialise(boost::filesystem::path config_file, boost::filesystem::path _working_dir);
 
     boost::shared_ptr<std::vector<int>  >
     getPipeDVBounds();
@@ -385,12 +385,13 @@ private:
     boost::filesystem::path working_dir;
     boost::filesystem::path outputDir;
     boost::scoped_array< char > ENFile_cstr;
-    std::string ENFile; /**< The location of the epanet inp file in the system */
+//    std::string ENFile; /**< The location of the epanet inp file in the system */
+    boost::filesystem::path en_inp_path;
     std::string reportFileName;
     std::string binaryFileName;
     boost::scoped_array< char > reportFile_cstr;
     boost::scoped_array< char > binaryFile_cstr;
-    unsigned dlOpenCount;
+    unsigned dlOpenCount = 0;
 
 //    bool initParams;
     boost::filesystem::path orig_opt_file_path;
@@ -424,9 +425,8 @@ private:
     void setNodeIndices();
     void getENInfo();
 
-    boost::filesystem::path working_en_inp_path;
-
-
+    boost::filesystem::path en_report_path;
+    boost::filesystem::path en_bin_path;
 
     EN_Project en3_simulation;
     ENsimulation_t ibanez_simulation;
