@@ -20,6 +20,11 @@
 #endif
 #endif
 
+
+DLLEXPORT int WINAPI
+setWorkingDir(const char* working_dir);
+
+
 /**
  * Creates a new analysis. Each analysis has its own runtime loaded EN library.
  * @param opt_cfg_file The path of the file
@@ -28,6 +33,8 @@
  */
 DLLEXPORT int WINAPI
 createAnalysis(const char* opt_cfg_file);
+
+
 
 /**
  *

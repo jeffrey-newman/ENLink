@@ -12,7 +12,7 @@
 #include <boost/timer/timer.hpp>
 
 
-#include "../EN2Link.h"
+#include "../ENLink.h"
 
 
 typedef std::pair<std::string, boost::filesystem::path> CmdLinePaths;

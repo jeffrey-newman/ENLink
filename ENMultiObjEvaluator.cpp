@@ -218,15 +218,16 @@ ENMultiObjEvaluator::~ENMultiObjEvaluator()
 }
 
 void
-ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
+ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path, boost::filesystem::path _working_dir)
 {
     namespace fs = boost::filesystem;
+
 
 //    if (initParams)
 //    {
         //copy the params to the working directory.
         // Transfer a copy of the opt cfg file to the working directory...
-//        fs::path working_opt_path = this->workingDir
+//        fs::path working_opt_path = this->working_dir
 //                                    / orig_opt_file_path.filename();
 //        if (!fs::exists(working_opt_path))
 //        {
@@ -234,8 +235,33 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
 //        }
         //open the params
         params = getObjectiveInput(opt_cfg_path);
-        ENFile = params->epanetFile;
+
+    // Copy project directory into working directory
+    std::string temp_dir_template = "WDSOpt_worker" + std::to_string(params.evaluator_id) + "_%%%%-%%%%";
+    params.working_dir.second = boost::filesystem::unique_path(params.working_dir.second / temp_dir_template);
+    params.working_dir.first = params.working_dir.second.string();
+    copyDir(params.template_project_dir.second, params.working_dir.second);
+
+
+
+
+    ENFile = params->epanetFile;
         epanet_dylib_loc = params->epanet_dylib_loc;
+
+    this->working_dir = _working_dir;
+        if (!fs::exists(this->working_dir))
+    {
+        if (!fs::create_directories(this->working_dir))
+        {
+            std::string err = "Unable to create EN working directory: "
+                              + this->working_dir.string();
+            throw std::runtime_error(err);
+        }
+    }
+
+    //Copy inp file to dir
+    fs::c
+
 
 //    }
 
@@ -251,15 +277,7 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
 //        }
 //    }
 //
-//    if (!fs::exists(this->workingDir))
-//    {
-//        if (!fs::create_directories(this->workingDir))
-//        {
-//            std::string err = "Unable to create EN working directory: "
-//                              + this->workingDir.string();
-//            throw std::runtime_error(err);
-//        }
-//    }
+
 
 
 
@@ -275,7 +293,7 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
     ++dlOpenCount;
 
     // Transfer a copy of the epanet input file to the working directory...
-    working_en_inp_path = this->workingDir
+    working_en_inp_path = this->working_dir
                                    / en_inp_path.filename();
     if (!fs::exists(working_en_inp_path))
     {
@@ -285,7 +303,7 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
     //Work out the location for the report file....
     std::string tmpReportName = reportFileName
                                 + boost::lexical_cast< std::string >(dlOpenCount) + ".rpt";
-    fs::path en_report_path = this->workingDir / tmpReportName;
+    fs::path en_report_path = this->working_dir / tmpReportName;
 
     //create the report and binary files...
     reportFile_cstr.reset(new char[en_report_path.string().size() + 1]);
@@ -294,7 +312,7 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path)
     //Woprk out the location for the binary file...
     std::string tmpBinName = binaryFileName
                              + boost::lexical_cast< std::string >(dlOpenCount) + ".bin";
-    fs::path en_bin_path = this->workingDir / tmpBinName;
+    fs::path en_bin_path = this->working_dir / tmpBinName;
 
     binaryFile_cstr.reset(new char[en_bin_path.string().size() + 1]);
 	strcpy(binaryFile_cstr.get(), en_bin_path.string().c_str());
@@ -571,7 +589,7 @@ ENMultiObjEvaluator::errors(int err, std::string what)
 
         //char errorMsg[nchar + 1];
 		char errorMsg[161];
-		this->errors(ENgeterror(err, errorMsg, nchar));
+		this->errors(ENgeterror_f(err, errorMsg, nchar));
 
         std::cerr << "\n\t MEANING: " << errorMsg << std::endl;
         err_out << "\n EPANET2 ERROR CODE: " << err << std::endl;

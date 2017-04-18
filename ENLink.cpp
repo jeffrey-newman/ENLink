@@ -1,4 +1,4 @@
-#include "EN2Link.h"
+#include "ENLink.h"
 
 #include <iostream>
 #include <map>
@@ -36,10 +36,17 @@ struct AnalysisData
 
 int max_analysis_id = -1;
 std::map<int, AnalysisData> analysis_map;
+boost::filesystem::path working_dir = "no_path";
+
 
 int
 createAnalysis(const char *opt_cfg_file)
 {
+    if (working_dir == "no_path")
+    {
+        working_dir = boost::filesystem::current_path();
+    }
+
     ++max_analysis_id;
     boost::shared_ptr<ENMultiObjEvaluator> en2_analysis(new ENMultiObjEvaluator);
     std::pair<std::map<int, AnalysisData>::iterator, bool> ret_val = analysis_map.insert(std::make_pair(max_analysis_id, AnalysisData(en2_analysis)));

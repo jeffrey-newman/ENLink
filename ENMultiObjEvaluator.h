@@ -382,7 +382,7 @@ private:
     std::map< std::string, int > nodeIndices;
     OptData_SPtr params;
 
-    boost::filesystem::path workingDir;
+    boost::filesystem::path working_dir;
     boost::filesystem::path outputDir;
     boost::scoped_array< char > ENFile_cstr;
     std::string ENFile; /**< The location of the epanet inp file in the system */
