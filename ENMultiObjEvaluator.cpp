@@ -216,14 +216,18 @@ ENMultiObjEvaluator::~ENMultiObjEvaluator()
     if (dlclose(en_lib_handle) != 0) {
         printf("[%s] Problem closing library: %s", __FILE__, dlerror());
     }
+    if (do_remove_work_dir_on_exit)
+    {
+        boost::filesystem::remove_all(working_dir);
+    }
 }
 
 void
-ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path, boost::filesystem::path _working_dir)
+ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path, boost::filesystem::path _working_dir, bool _do_remove_work_dir_on_exit)
 {
     namespace fs = boost::filesystem;
 
-
+    do_remove_work_dir_on_exit = _do_remove_work_dir_on_exit;
 //    if (initParams)
 //    {
         //copy the params to the working directory.

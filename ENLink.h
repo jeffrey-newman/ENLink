@@ -35,7 +35,6 @@ DLLEXPORT int WINAPI
 createAnalysis(const char* opt_cfg_file);
 
 
-
 /**
  *
  * @return
@@ -172,13 +171,13 @@ handBackAnalysis(int analysisID);
  * @return
  */
 DLLEXPORT int WINAPI
-clear(int analysisID);
+clear(int analysisID, bool _delete_temp_on_exit);
 
 /**
  *
  * @return
  */
 DLLEXPORT int WINAPI
-clearAll();
+clearAll(bool _delete_temp_on_exit);
 
 #endif

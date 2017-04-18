@@ -98,7 +98,7 @@ main(int argc, char* argv[])
 
     int err_code = runEN(analysis_id, dv_vals.data());
     double cost = getPipeCapitalCost(analysis_id);
-    clear(analysis_id);
+    clear(analysis_id, true);
 
 
     boost::timer::auto_cpu_timer t;
@@ -118,7 +118,7 @@ main(int argc, char* argv[])
 
         int err_code = runEN(analysis_id, dv_vals.data());
         double cost = getPipeCapitalCost(analysis_id);
-        clear(analysis_id);
+        clear(analysis_id, true);
     }
     t.stop();
     t.report();
@@ -139,6 +139,7 @@ main(int argc, char* argv[])
         int err_code = runEN(analysis_id, dv_vals.data());
         double cost = getPipeCapitalCost(analysis_id);
     }
+    clear(analysis_id, true);
     t2.stop();
     t2.report();
 

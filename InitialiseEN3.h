@@ -220,20 +220,19 @@ ENMultiObjEvaluator::initialise_OWA_EN3()
 
     //Work out the location of the epanet library.
 
-    fs::path en_lib_path(epanet_dylib_loc);
 
-    if (!fs::exists(en_lib_path))
+    if (!fs::exists(epanet_dylib_path))
     {
         std::string err = "Unable to locate epanet library at: "
-                          + en_lib_path.string();
+                          + epanet_dylib_path.string();
         throw std::runtime_error(err);
     }
 
-    en_lib_handle = dlopen(en_lib_path.c_str(), RTLD_LAZY);
+    en_lib_handle = dlopen(epanet_dylib_path.string().c_str(), RTLD_LAZY);
     if (!en_lib_handle)
     {
         std::string err = "Unable to load epanet library."
-                                  " Check location: " + en_lib_path.string();
+                                  " Check location: " + epanet_dylib_path.string();
         std::cerr << err << std::endl;
         throw std::runtime_error(err);
     }

@@ -4,7 +4,7 @@
 #include <map>
 #include <boost/shared_ptr.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/range/adaptor/map.hpp>
 #include "ENMultiObjEvaluator.h"
 
 /**
@@ -52,6 +52,7 @@ setWorkingDir(const char* _working_dir)
 int
 createAnalysis(const char *opt_cfg_file)
 {
+    bool _delete_temp_on_exit = true;
     if (working_dir == "no_path")
     {
         working_dir = boost::filesystem::current_path();
@@ -70,7 +71,7 @@ createAnalysis(const char *opt_cfg_file)
             return (-1);
         }
 
-        ret_val.first->second.evaluator->initialise(config_file_path, working_dir);
+        ret_val.first->second.evaluator->initialise(config_file_path, working_dir, _delete_temp_on_exit);
 
 
         return (max_analysis_id);
@@ -177,14 +178,20 @@ void handBackAnalysis(int analysisID)
     analysis.is_in_use = false;
 }
 
-int clear(int analysisID)
+int clear(int analysisID, bool _delete_temp_on_exit)
 {
+    AnalysisData & analysis = analysis_map[analysisID];
+    analysis.evaluator->do_remove_work_dir_on_exit = _delete_temp_on_exit;
     analysis_map.erase(analysisID);
     return 0;
 }
 
-int clearAll()
+int clearAll(bool _delete_temp_on_exit)
 {
+    BOOST_FOREACH(AnalysisData& analysis, analysis_map | boost::adaptors::map_values)
+                {
+                    analysis.evaluator->do_remove_work_dir_on_exit = _delete_temp_on_exit;
+                }
     analysis_map.clear();
     return 0;
 }

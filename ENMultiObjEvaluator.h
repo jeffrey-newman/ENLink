@@ -253,7 +253,7 @@ public:
     ~ENMultiObjEvaluator();
 
     void
-    initialise(boost::filesystem::path config_file, boost::filesystem::path _working_dir);
+    initialise(boost::filesystem::path config_file, boost::filesystem::path _working_dir,  bool _do_remove_work_dir_on_exit);
 
     boost::shared_ptr<std::vector<int>  >
     getPipeDVBounds();
@@ -442,6 +442,9 @@ private:
 
     boost::function<int (char*, char*, char*) > ENopen_Ibanev_f;
     boost::function<int (ENsimulation_t *) > ENopenH_Ibanev_f;
+
+public:
+    bool do_remove_work_dir_on_exit;
 
 };
 
