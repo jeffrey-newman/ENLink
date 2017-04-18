@@ -566,7 +566,7 @@ ENMultiObjEvaluator::open_OWA_EN3()
     //Open the toolkit and the input file in epanet
     ENFile_cstr.reset(
             new char[en_inp_path.string().size() + 1]);strcpy
-            (ENFile_cstr.get(), en_inp_path.c_str());
+            (ENFile_cstr.get(), en_inp_path.string().c_str());
 
     //std::cout << ENFile_cstr << std::endl;
 

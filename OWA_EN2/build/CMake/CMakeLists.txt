@@ -21,7 +21,7 @@ add_library(owa_epanet2 SHARED  ${OWA_EPANET2_SOURCES})
 # the standalone executable
 include_directories(../../src)
 add_executable(runepanet ../../run/main.c)
-target_link_libraries (runepanet LINK_PUBLIC owa_epanet2 m)
+target_link_libraries (runepanet LINK_PUBLIC owa_epanet2)
 
 # the binary hydraulics file API
 include_directories(../../tools/outputapi)

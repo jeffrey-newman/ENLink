@@ -143,7 +143,7 @@ execute function x and set the error code equal to its return value.
 //#ifndef LINUX     //JN Modified
 #ifdef WIN32        //JN Modified
 #include <windows.h>
-
+#define snprintf _snprintf
 /*** Updated 9/7/00 ***/
 #include <float.h>
 

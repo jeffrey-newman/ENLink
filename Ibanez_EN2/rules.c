@@ -66,6 +66,10 @@ AUTHOR:     L. Rossman
 #define  EXTERN  extern
 #include "vars.h"
 
+#ifdef WIN32        //JN Modified
+#define snprintf _snprintf
+#endif // #ifdef  WIN32
+
 struct      Premise         /* Rule Premise Clause */
 {
     int      logop;          /* Logical operator */
