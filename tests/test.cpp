@@ -143,7 +143,9 @@ main(int argc, char* argv[])
     t2.stop();
     t2.report();
 
-
+	char temp;
+	std::cout << "Press any key to exit" << std::endl;
+	std::cin >> temp;
 
 //    std::cout << "cost is: " << std::endl;
 

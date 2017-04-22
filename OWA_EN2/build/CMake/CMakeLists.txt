@@ -26,3 +26,8 @@ target_link_libraries (runepanet LINK_PUBLIC owa_epanet2)
 # the binary hydraulics file API
 include_directories(../../tools/outputapi)
 add_library(ENBinaryOut SHARED ../../tools/outputapi/outputapi.c)
+
+
+install(TARGETS owa_epanet2
+		DESTINATION ${CMAKE_BINARY_DIR}/bin
+		CONFIGURATIONS Release RelWithDebInfo Debug)

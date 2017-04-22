@@ -26,3 +26,6 @@ file(GLOB IBANEZ_EPANET2_SOURCES *.c)
 add_library(Ibanez_epanet2 SHARED  ${IBANEZ_EPANET2_SOURCES})
 
 
+install(TARGETS Ibanez_epanet2
+		DESTINATION ${CMAKE_BINARY_DIR}/bin
+		CONFIGURATIONS Release RelWithDebInfo Debug)

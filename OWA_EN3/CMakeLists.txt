@@ -149,3 +149,8 @@ add_library(owa_epanet3 SHARED ${epanet_lib_sources} ${epanet_lib_headers})
 
 add_executable(run-epanet3 src/CLI/main.cpp)
 target_link_libraries(run-epanet3 LINK_PUBLIC owa_epanet3)
+
+
+install(TARGETS owa_epanet3
+		DESTINATION ${CMAKE_BINARY_DIR}/bin
+		CONFIGURATIONS Release RelWithDebInfo Debug)
