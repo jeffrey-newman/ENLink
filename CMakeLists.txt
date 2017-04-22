@@ -7,11 +7,24 @@ IF(MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 ENDIF(MSVC)
 
-set(Boost_USE_STATIC_LIBS        OFF)
-set(Boost_USE_MULTITHREADED      ON)
-set(Boost_USE_STATIC_RUNTIME     OFF)
-set(BOOST_ALL_DYN_LINK           ON )   # force dynamic linking for all libraries
-ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)
+IF(WIN32)
+	SET(USE_BOOST_DLL ON CACHE BOOL "Whether using shared (dynamic) target for boost libraries")
+ENDIF(WIN32)
+
+IF(WIN32)
+IF(${USE_BOOST_DLL})
+	set(Boost_USE_STATIC_LIBS        OFF)
+	set(Boost_USE_MULTITHREADED      ON)
+	set(Boost_USE_STATIC_RUNTIME     OFF)
+	set(BOOST_ALL_DYN_LINK           ON )   # force dynamic linking for all libraries
+	ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)
+ELSE(${USE_BOOST_DLL})
+	set(Boost_USE_STATIC_LIBS        ON)
+	set(Boost_USE_MULTITHREADED      ON)
+	set(Boost_USE_STATIC_RUNTIME     ON)
+	set(BOOST_ALL_DYN_LINK           OFF )
+ENDIF(${USE_BOOST_DLL})
+ENDIF(WIN32)
 
 FIND_PACKAGE(Boost 1.40 REQUIRED COMPONENTS chrono filesystem system program_options timer)
 include_directories(${Boost_INCLUDE_DIRS})
@@ -48,7 +61,6 @@ add_subdirectory(Ibanez_EN2)
 add_subdirectory(OWA_EN2)
 add_subdirectory(OWA_EN3)
 
-
 install(TARGETS ENLink
 		DESTINATION ${CMAKE_BINARY_DIR}/bin
 		CONFIGURATIONS Release RelWithDebInfo Debug)
@@ -66,12 +78,15 @@ function(install_boost_components_debug BOOST_VAR)
         )
 endfunction(install_boost_components_debug)
 
-install_boost_components_debug(${Boost_FILESYSTEM_LIBRARY_DEBUG})
-install_boost_components_debug(${Boost_CHRONO_LIBRARY_DEBUG})
-install_boost_components_debug(${Boost_PROGRAM_OPTIONS_LIBRARY_DEBUG})
-install_boost_components_debug(${Boost_SYSTEM_LIBRARY_DEBUG})
-install_boost_components_debug(${Boost_TIMER_LIBRARY_DEBUG})
-
+IF (WIN32)
+IF(${USE_BOOST_DLL})
+	install_boost_components_debug(${Boost_FILESYSTEM_LIBRARY_DEBUG})
+	install_boost_components_debug(${Boost_CHRONO_LIBRARY_DEBUG})
+	install_boost_components_debug(${Boost_PROGRAM_OPTIONS_LIBRARY_DEBUG})
+	install_boost_components_debug(${Boost_SYSTEM_LIBRARY_DEBUG})
+	install_boost_components_debug(${Boost_TIMER_LIBRARY_DEBUG})
+ENDIF(${USE_BOOST_DLL})
+ENDIF(WIN32)
 
 function(install_boost_components_release BOOST_VAR)
 	get_filename_component(path_release_base 
@@ -86,11 +101,13 @@ function(install_boost_components_release BOOST_VAR)
         )
 endfunction(install_boost_components_release)
 
-
-install_boost_components_release(${Boost_FILESYSTEM_LIBRARY_RELEASE})
-install_boost_components_release(${Boost_CHRONO_LIBRARY_RELEASE})
-install_boost_components_release(${Boost_PROGRAM_OPTIONS_LIBRARY_RELEASE})
-install_boost_components_release(${Boost_SYSTEM_LIBRARY_RELEASE})
-install_boost_components_release(${Boost_TIMER_LIBRARY_RELEASE})
-
+IF (WIN32)
+IF(${USE_BOOST_DLL})
+	install_boost_components_release(${Boost_FILESYSTEM_LIBRARY_RELEASE})
+	install_boost_components_release(${Boost_CHRONO_LIBRARY_RELEASE})
+	install_boost_components_release(${Boost_PROGRAM_OPTIONS_LIBRARY_RELEASE})
+	install_boost_components_release(${Boost_SYSTEM_LIBRARY_RELEASE})
+	install_boost_components_release(${Boost_TIMER_LIBRARY_RELEASE})
+ENDIF(${USE_BOOST_DLL})
+ENDIF(WIN32)
 
