@@ -79,7 +79,7 @@ PG21    DIA_000    DIA_036    DIA_048    DIA_060    DIA_072    DIA_084    DIA_09
 
 [EVALUATION]
 ; Location of the epanet dll, 
-EpanetLib: OWA_EPANET_Version2: "C:\Users\a1091793\Developer\EN2Link\build-cmake-vs2015\bin\owa_epanet2.dll"
+EpanetLib: Ibanevs_EPANET: "C:\Users\a1091793\Developer\EN2Link\build-cmake-vs2015\bin\Ibanez_epanet2.dll"
 
 
 [HEADS]
