@@ -172,10 +172,12 @@ double getNetworkResilience(int analysisID)
     return( analysis.evaluator->getNetworkResilience());
 }
 
-void handBackAnalysis(int analysisID)
+int handBackAnalysis(int analysisID)
 {
     AnalysisData & analysis = analysis_map[analysisID];
     analysis.is_in_use = false;
+    if (analysis.is_in_use == false) return 0;
+    return -1;
 }
 
 int clear(int analysisID, bool _delete_temp_on_exit)

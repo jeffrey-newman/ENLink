@@ -160,8 +160,11 @@ getMaxVelocityTooHigh(int analysisID);
 DLLEXPORT double WINAPI
 getNetworkResilience(int analysisID);
 
-
-DLLEXPORT void WINAPI
+/**
+ * @param analysisID the index for the analysis to hand back (i.e. no longer need this analyssi to test network, so other threads can use)
+ * @return int code whether successful or not. 0 indicates success
+ */
+DLLEXPORT int WINAPI
 handBackAnalysis(int analysisID);
 
 
