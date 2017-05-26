@@ -198,6 +198,8 @@ struct Results
 
     std::vector< TankResultsInfo > tankresults_vec;
     TankResultsInfo net_tank_results;
+
+
 };
 
 enum ENLinkNodeType{ENLNK_JUNCTION, ENLNK_RESERVOIR, ENLNK_TANK};
@@ -254,6 +256,9 @@ public:
 
     void
     initialise(boost::filesystem::path config_file, boost::filesystem::path _working_dir,  bool _do_remove_work_dir_on_exit);
+
+    bool
+    log();
 
     boost::shared_ptr<std::vector<int>  >
     getPipeDVBounds();
@@ -442,6 +447,8 @@ private:
 
     boost::function<int (char*, char*, char*) > ENopen_Ibanev_f;
     boost::function<int (ENsimulation_t *) > ENopenH_Ibanev_f;
+
+    boost::optional<boost::shared_ptr<std::ofstream> > logging;
 
 public:
     bool do_remove_work_dir_on_exit;

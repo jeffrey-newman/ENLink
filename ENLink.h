@@ -34,6 +34,8 @@ setWorkingDir(const char* working_dir);
 DLLEXPORT int WINAPI
 createAnalysis(const char* opt_cfg_file);
 
+DLLEXPORT int WINAPI
+doLog(int analysisID);
 
 /**
  *

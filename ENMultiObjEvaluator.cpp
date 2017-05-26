@@ -190,6 +190,7 @@ int evaluator_id = 0;
 typedef struct _ENsimulation_t * ENsimulation_t;
 
 ENMultiObjEvaluator::ENMultiObjEvaluator()
+: logging(boost::none)
 {
 
 }
@@ -316,6 +317,24 @@ ENMultiObjEvaluator::initialise(boost::filesystem::path opt_cfg_path, boost::fil
     this->setLinkIndices();
     this->setNodeIndices();
     this->getENInfo();
+
+}
+
+bool
+ENMultiObjEvaluator::log()
+{
+    if (!logging)
+    {
+        boost::filesystem::path log_path = working_dir / "calculations.log";
+        logging = boost::shared_ptr<std::ofstream>(new std::ofstream(log_path.string().c_str()));
+        if(!(logging.value()->is_open()))
+        {
+            logging = boost::none;
+            return (false);
+        }
+
+    }
+    return (true);
 
 }
 
@@ -635,6 +654,12 @@ ENMultiObjEvaluator::setPipeChoices(const int* dvs)
     double totalLength = 0;
     double lengthAvgedDiameter = 0;
 
+    if (logging)
+    {
+        **logging << "Pipe option choices:\n";
+        **logging << "LinkID\tStatus\tDiameter\tLength\troughness\tcost\n";
+    }
+
     int dv_number = 0;
     while (pipeGroup != endGroup)
     {
@@ -684,12 +709,20 @@ ENMultiObjEvaluator::setPipeChoices(const int* dvs)
                         *enLinkId + ": Setting link roughness to "
                         + boost::lexical_cast< std::string >(
                                 pipeChoiceData->roughnessHeight));
+                if(logging)
+                {
+                    **logging << *enLinkId << "\t" << "open" << "\t" << pipeChoiceData->diameter << "\t" << pipelength << "\t" << pipeChoiceData->roughnessHeight << "\t" << pipeChoiceData->cost << "\n";
+                }
             }
             else
             {
                 this->errors(
                         ENsetlinkvalue_f(linkIndices[*enLinkId], EN_INITSTATUS,
                                        0), *enLinkId); // LINK IS CLOSED
+                if(logging)
+                {
+                    **logging << *enLinkId << "\t" << "closed" << "\n";
+                }
             }
         }
         ++pipeGroup;
@@ -699,6 +732,10 @@ ENMultiObjEvaluator::setPipeChoices(const int* dvs)
     lengthAvgedDiameter /= totalLength;
     results.lengthAvgDiameter = lengthAvgedDiameter;
 
+    if(logging)
+    {
+        **logging << "\n\n\n";
+    }
 }
 
 void
@@ -718,7 +755,21 @@ ENMultiObjEvaluator::evalPipes(const int* dvs)
     PipeAvailOptionsType::iterator endGroup =
             params->pipe_availOpt_data.end();
 
+    double t_pipeCapitalCost = 0;
+    double t_pipeRepairCost = 0;
+    double t_pipeRepairEE = 0;
+    double t_pipeEmbodiedEnergy = 0;
+    double t_trenchingCost = 0;
+    double t_trenchEE = 0;
+
     int dv_number = 0;
+
+    if (logging)
+    {
+        **logging << "Pipe costings:\n";
+        **logging << "PipeID\tCapitalCost\tRepairCost\tRepairEE\tEmbodiedEnergy\ttrenchCost\ttrenchEE\n";
+    }
+
     while (pipeGroup != endGroup)
     {
         int dv_val = dvs[dv_number];
@@ -734,6 +785,8 @@ ENMultiObjEvaluator::evalPipes(const int* dvs)
         LinkGroups::iterator endId =
                 params->link_groups_data[*pipeGroupID].end();
 
+
+
         //Iterate through the epanet links in this group.
         for (; enLinkId != endId; ++enLinkId)
         {
@@ -745,16 +798,21 @@ ENMultiObjEvaluator::evalPipes(const int* dvs)
             //calculate cost
             if (params->isCostObj)
             {
-                results.pipeCapitalCost += ((params->FittingsCost > 0) ? (1  + params->FittingsCost) : 1)
+                t_pipeCapitalCost += ((params->FittingsCost > 0) ? (1  + params->FittingsCost) : 1)
                                            * (length * pipeChoiceData->cost); //The pipe cost
+                results.pipeCapitalCost += t_pipeCapitalCost;
                 //calculate repair cost... for this pipe in one year
-                results.pipeRepairCost += (length * pipeChoiceData->repairCost); //The pipe cost
-                results.pipeRepairEE += (length * pipeChoiceData->repairEE);
+                t_pipeRepairCost += (length * pipeChoiceData->repairCost); //The pipe cost
+                results.pipeRepairCost += t_pipeRepairCost;
+                t_pipeRepairEE += (length * pipeChoiceData->repairEE);
+                results.pipeRepairEE += t_pipeRepairEE;
+
             }
             if (params->isEnergyObj)
             {
-                results.pipeEmbodiedEnergy += ((params->FittingsEE > 0) ? (1 + params->FittingsEE) : 1)
-                                              * (length * pipeChoiceData->embodiedEnergy); //The pipe cost
+                t_pipeEmbodiedEnergy = ((params->FittingsEE > 0) ? (1 + params->FittingsEE) : 1)
+                                       * (length * pipeChoiceData->embodiedEnergy); //The pipe cost
+                results.pipeEmbodiedEnergy += t_pipeEmbodiedEnergy;
             }
 
             if (params->TrenchingCost > 0)
@@ -762,9 +820,22 @@ ENMultiObjEvaluator::evalPipes(const int* dvs)
                 double trenchVolume = ((pipeChoiceData->diameter+ 2 * pipeChoiceData->sideCover) / 1000) //trenching width - divide by 1000 to convert from mm to m
                                       * ((pipeChoiceData->diameter + pipeChoiceData->topCover + pipeChoiceData->bottomCover) / 1000) //trenching depth - divide by 1000 to convert from mm to m
                                       * length;
-                if (params->isCostObj) results.pipeCapitalCost += trenchVolume * params->TrenchingCost; // The trenching cost
-                if (params->isEnergyObj) results.pipeEmbodiedEnergy += trenchVolume * params->trenchEE;
+                if (params->isCostObj)
+                {
+                    t_trenchingCost = trenchVolume * params->TrenchingCost;
+                    results.pipeCapitalCost += t_trenchingCost;
+                } // The trenching cost
+                if (params->isEnergyObj)
+                {
+                    t_trenchEE = trenchVolume * params->trenchEE;
+                    results.pipeEmbodiedEnergy += t_trenchEE;
+                }
             }
+            if (logging)
+            {
+                **logging << *enLinkId << "\t" << t_pipeCapitalCost << "\t" << t_pipeRepairCost << "\t" << t_pipeRepairEE << "\t" << t_pipeEmbodiedEnergy << "\t"  << t_trenchingCost << "\t"  << t_trenchEE << "\n" ;
+            }
+
 
         }
         ++pipeGroup;
@@ -782,7 +853,10 @@ ENMultiObjEvaluator::evalPipes(const int* dvs)
                                                                                           params->planHorizon, params->drateEE);
     }
 
-
+    if(logging)
+    {
+        **logging << "\n\n\n";
+    }
 }
 
 int
@@ -813,29 +887,48 @@ void
 ENMultiObjEvaluator::evalPressurePenalty()
 {
 
-    double pressure = 0;
+
 
     NodeConstraintsT::iterator pConstraint =
             params->pressure_constraints.begin();
     NodeConstraintsT::iterator end =
             params->pressure_constraints.end();
 
+    double pressure = 0;
+    double deviationLow = 0;
+    double deviationHigh = 0;
     double maxDeviationHigh = 0;
     double maxDeviationLow = 0;
     double sumDeviationHigh = 0;
     double sumDeviationLow = 0;
+    double constraintLow = 0;
+    double constraintHigh = 0;
+
+    std::string nodeID;
+
+    if (logging)
+    {
+        **logging << "Pressure constraint evaluation\n";
+        **logging << "NodeID\tPressure\tconstraintLow\tdeviationLow\tconstraintHigh\tdeviationHigh\n";
+    }
 
     for (; pConstraint != end; ++pConstraint)
     {
         //std::cout << "Junction: \"" << Pressures(pConstraint).id << "\"" << std::endl;
         //std::cout << "ID: \"" << nodeIndices[Pressures(pConstraint).id] << "\"" << std::endl;
 
+        deviationLow = 0;
+        deviationHigh = 0;
+        nodeID = Pressures(pConstraint).id;
+
         this->errors(
-                ENgetnodevalue_f(nodeIndices[Pressures(pConstraint).id],
-                               EN_PRESSURE, &pressure), Pressures(pConstraint).id);
-        if ((pressure) < Pressures(pConstraint).minPressure)
+                ENgetnodevalue_f(nodeIndices[nodeID],
+                               EN_PRESSURE, &pressure), nodeID);
+
+        constraintLow = Pressures(pConstraint).minPressure;
+        if ((pressure) < constraintLow)
         {
-            double deviationLow = (Pressures(pConstraint).minPressure - pressure);
+            deviationLow = (constraintLow - pressure);
             sumDeviationLow += deviationLow;
             if (deviationLow < maxDeviationLow)
                 maxDeviationLow = deviationLow;
@@ -844,9 +937,11 @@ ENMultiObjEvaluator::evalPressurePenalty()
 //                    (Pressures(pConstraint).minPressure - pressure);
 
         }
-        if ((pressure) > Pressures(pConstraint).maxPressure)
+
+        constraintHigh = Pressures(pConstraint).maxPressure;
+        if ((pressure) > constraintHigh)
         {
-            double deviationHigh = pressure - Pressures(pConstraint).maxPressure;
+            deviationHigh = pressure - constraintHigh;
             sumDeviationHigh += deviationHigh;
             if (deviationHigh > maxDeviationHigh)
                 maxDeviationHigh = deviationHigh;
@@ -854,12 +949,22 @@ ENMultiObjEvaluator::evalPressurePenalty()
 //                                               - Pressures(pConstraint).maxPressure);
 
         }
+
+        if (logging)
+        {
+            **logging << nodeID  << "\t" << pressure << "\t" << constraintLow << "\t" << deviationLow << "\t" << constraintHigh << "\t" << deviationHigh << "\n";
+        }
     }
 
     results.minPressureTooLow = maxDeviationLow;
     results.maxPressureTooHigh = maxDeviationHigh;
     results.sumPressureTooLow = sumDeviationLow;
     results.sumPressureTooHigh = sumDeviationHigh;
+
+    if(logging)
+    {
+        **logging << "\n\n\n";
+    }
 }
 
 
@@ -867,25 +972,40 @@ void
 ENMultiObjEvaluator::evalHeadPenalty()
 {
 
-    double head = 0;
-
     NodeConstraintsT::iterator hConstraint =
             params->head_constraints.begin();
     NodeConstraintsT::iterator end = params->head_constraints.end();
 
+    double head = 0;
+    double deviationLow = 0;
+    double deviationHigh = 0;
     double maxDeviationHigh = 0;
     double maxDeviationLow = 0;
     double sumDeviationHigh = 0;
     double sumDeviationLow = 0;
+    double constraintLow = 0;
+    double constraintHigh = 0;
+
+    std::string nodeID;
+
+    if (logging)
+    {
+        **logging << "Head constraint evaluation:\n";
+        **logging << "NodeID\tHead\tconstraintLow\tdeviationLow\tconstraintHigh\tdeviationHigh\n";
+    }
 
     for (; hConstraint != end; ++hConstraint)
     {
         //std::cout << "Junction: \"" << Pressures(pConstraint).id << "\"" << std::endl;
         //std::cout << "ID: \"" << nodeIndices[Pressures(pConstraint).id] << "\"" << std::endl;
 
+        deviationLow = 0;
+        deviationHigh = 0;
+        nodeID = Heads(hConstraint).id;
+
         this->errors(
-                ENgetnodevalue_f(nodeIndices[Heads(hConstraint).id], EN_HEAD,
-                               &head), Heads(hConstraint).id);
+                ENgetnodevalue_f(nodeIndices[nodeID], EN_HEAD,
+                               &head), nodeID);
 
 //        if (this->writeHeadViolation)
 //        {
@@ -894,20 +1014,28 @@ ENMultiObjEvaluator::evalHeadPenalty()
 ////                    << "; actual head: " << head << std::endl;
 //        }
 
-        if (head < Heads(hConstraint).minHead)
+        constraintLow = Heads(hConstraint).minHead;
+        if (head < constraintLow)
         {
-            double deviationLow = Heads(hConstraint).minHead - head;
+            deviationLow = constraintLow - head;
             sumDeviationLow += deviationLow;
             if (deviationLow > maxDeviationLow)
                 maxDeviationLow = deviationLow;
 
         }
-        if (head > Heads(hConstraint).maxHead)
+
+        constraintHigh = Heads(hConstraint).maxHead;
+        if (head > constraintHigh)
         {
-            double deviationHigh = head - Heads(hConstraint).maxHead;
+            deviationHigh = head - constraintHigh;
             sumDeviationHigh += deviationHigh;
             if (deviationHigh > maxDeviationHigh)
                 maxDeviationHigh = deviationHigh;
+        }
+
+        if (logging)
+        {
+            **logging << nodeID  << "\t" << head << "\t" << constraintLow << "\t" << deviationLow << "\t" << constraintHigh << "\t" << deviationHigh << "\n";
         }
     }
 
@@ -915,36 +1043,51 @@ ENMultiObjEvaluator::evalHeadPenalty()
     results.maxHeadTooHigh = maxDeviationHigh;
     results.sumHeadTooLow = sumDeviationLow;
     results.sumHeadTooHigh = sumDeviationHigh;
+
+    if(logging)
+    {
+        **logging << "\n\n\n";
+    }
 }
 
 
 void
 ENMultiObjEvaluator::evalVelocityPenalty()
 {
-
-
-    double velocity = 0;
-
     VelocityConstraintsT::iterator vConstraint =
             params->velocity_constraints.begin();
     VelocityConstraintsT::iterator end =
             params->velocity_constraints.end();
 
+    double velocity = 0;
     double maxDeviationHigh = 0;
     double sumDeviationHigh = 0;
+    double deviationHigh = 0;
+    double constraintHigh = 0;
+    std::string linkID;
+
+    if (logging)
+    {
+        **logging << "Velocity constraint evaluation:\n";
+        **logging << "LinkID\tvelocity\tconstraintHigh\tdeviationHigh\n";
+    }
+
 
     for (; vConstraint != end; ++vConstraint)
     {
         //std::cout << "Link: \"" << Velocities(vConstraint).id << "\"" << std::endl;
         //std::cout << "ID: \"" << linkIndices[Velocities(vConstraint).id] << "\"" << std::endl;
 
+        deviationHigh = 0;
+        linkID = Velocities(vConstraint).id;
+
         errors(
-                ENgetlinkvalue_f(linkIndices[Velocities(vConstraint).id],
-                               EN_VELOCITY, &velocity), Velocities(vConstraint).id);
-        if (velocity > Velocities(vConstraint).maxVelocity)
+                ENgetlinkvalue_f(linkIndices[linkID],
+                               EN_VELOCITY, &velocity), linkID);
+        constraintHigh = Velocities(vConstraint).maxVelocity;
+        if (velocity > constraintHigh)
         {
-            double deviationHigh = velocity
-                                   - Velocities(vConstraint).maxVelocity;
+            deviationHigh = velocity  - constraintHigh;
             sumDeviationHigh += deviationHigh;
             if (deviationHigh > maxDeviationHigh)
                 maxDeviationHigh = deviationHigh;
@@ -952,9 +1095,19 @@ ENMultiObjEvaluator::evalVelocityPenalty()
 //                                        - Velocities(vConstraint).maxVelocity);
             //* params->VelocityPenalty;
         }
+
+        if (logging)
+        {
+            **logging << linkID << "\t" << velocity << "\t" << constraintHigh << "\t" << deviationHigh << "\n";
+        }
     }
     results.sumVelocityTooHigh = sumDeviationHigh;
     results.maxVelocityTooHigh = maxDeviationHigh;
+
+    if(logging)
+    {
+        **logging << "\n\n\n";
+    }
 }
 ;
 
@@ -1023,19 +1176,31 @@ ENMultiObjEvaluator::evalResiliency()
     NodeConstraintsT::iterator end = params->head_constraints.end();
 
 
+    if (logging)
+    {
+        **logging << "Resilience calc: Demand nodes\n";
+        **logging << "nodeID\tCj\tX'\tXmax'\n";
+    }
+
+    std::string nodeID;
+    double X_ = 0;
+    double Xmax_ = 0;
 
     for (; hConstraint != end; ++hConstraint)
     {
         //std::cout << "Junction: \"" << Pressures(pConstraint).id << "\"" << std::endl;
         //std::cout << "ID: \"" << nodeIndices[Pressures(pConstraint).id] << "\"" << std::endl;
 
-        int node_index = nodeIndices[Heads(hConstraint).id];
+        nodeID = Heads(hConstraint).id;
+        int node_index = nodeIndices[nodeID];
         NodeInfo &node = this->nodes[node_index];
         nPipe = 0;
         maxDiameter = 0;
         sumDiameter = 0;
+
         if (node.type == ENLNK_JUNCTION)
         {
+
             BOOST_FOREACH(int link_index, node.connectedLinkIndices)
                         {
                             ENgetlinkvalue_f(link_index, EN_DIAMETER, &retrievedData);
@@ -1051,13 +1216,25 @@ ENMultiObjEvaluator::evalResiliency()
             errors(ENgetnodevalue_f(node_index, EN_HEAD, &head_actual));
             head_required = Heads(hConstraint).minHead;
             errors(ENgetnodevalue_f(node_index, EN_DEMAND, &demand));
-            X += Cj * demand * (head_actual - head_required);
-            Xmax -= demand * head_required;
+            X_ = Cj * demand * (head_actual - head_required);
+            X += X_;
+            Xmax_ = demand * head_required;
+            Xmax -= Xmax_;
+
+            if (logging)
+            {
+                **logging <<  nodeID << "\t" << Cj  << "\t" << X_ << "\t" << Xmax_ << "\n";
+            }
         }
     }
 
     double reservoir_discharge;
     double reservoir_head;
+    if (logging)
+    {
+        **logging << "\nResilience calc: Reservoirs\n";
+        **logging << "nodeID\tXmax'\n";
+    }
     for (int i=1; i<=this->node_count; i++)
     {
         NodeInfo & node = this->nodes[i];
@@ -1065,11 +1242,22 @@ ENMultiObjEvaluator::evalResiliency()
         {
             errors(ENgetnodevalue_f(node.index, EN_HEAD, &reservoir_head));
             errors(ENgetnodevalue_f(node.index, EN_DEMAND, &reservoir_discharge));
-            Xmax -= reservoir_discharge * reservoir_head;
+            Xmax_ = reservoir_discharge * reservoir_head;
+            Xmax -= Xmax_;
+
+            if(logging)
+            {
+                **logging << node.id << "\t" << Xmax_ << "\n";
+            }
         }
     }
 
     this->results.networkResilience = X / Xmax;
+
+    if(logging)
+    {
+        **logging << "\n\n\n";
+    }
 
 }
 

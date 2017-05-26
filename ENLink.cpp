@@ -83,6 +83,15 @@ createAnalysis(const char *opt_cfg_file)
 
 }
 
+int
+doLog(int analysisID)
+{
+    AnalysisData & analysis = analysis_map[analysisID];
+    bool success = analysis.evaluator->log();
+    if (success) return 0;
+    return -1;
+}
+
 int*
 getDVBounds(int analysisID, int* numberDVs)
 {
