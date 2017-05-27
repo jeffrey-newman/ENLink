@@ -61,6 +61,8 @@ main(int argc, char* argv[])
     CmdLinePaths opt_file_path;
     bool do_log;
     bool test_analysis_reuse;
+    bool do_cost;
+    bool do_resiliency;
     CmdLinePaths solutions_file_path;
 
     namespace po = boost::program_options;
@@ -96,6 +98,11 @@ main(int argc, char* argv[])
     pathify(opt_file_path);
 
     int analysis_id = createAnalysis(opt_file_path.second.string().c_str());
+    if (analysis_id == -1)
+    {
+        // Error, probably opt file does not exist in location specified
+        return EXIT_FAILURE;
+    }
     if (do_log) doLog(analysis_id);
     int numDVs;
     int* dv_bounds = getDVBounds(analysis_id, &numDVs);
@@ -109,7 +116,7 @@ main(int argc, char* argv[])
     {
         //Generate a random dv vals.
         std::default_random_engine generator;
-        for (int j = 0; j < 1000; ++j)
+        for (int j = 0; j < dv_vals_set.size(); ++j)
         {
             std::vector<int> dv_vals_inst;
             for (int i = 0; i < numDVs; ++i)
@@ -123,18 +130,39 @@ main(int argc, char* argv[])
     else
     {
         pathify(solutions_file_path);
-        readInSolutions(solutions_file_path.second, dv_vals_set);
+        bool read_success = readInSolutions(solutions_file_path.second, dv_vals_set);
+        if (!read_success)
+        {
+            return EXIT_FAILURE;
+        }
     }
 
+    double cost;
+    double resiliency;
+    double min_head_too_low;
+    double sum_head_too_low;
+    double min_pressure_too_low;
+    double sum_pressure_too_low;
     if(test_analysis_reuse)
     {
         boost::timer::auto_cpu_timer t;
-        for (int j = 0; j < 1000; ++j)
+        for (int j = 0; j < dv_vals_set.size(); ++j)
         {
             analysis_id = createAnalysis(opt_file_path.second.string().c_str());
             if (do_log) doLog(analysis_id);
             int err_code = runEN(analysis_id, dv_vals_set[j].data());
-            double cost = getPipeCapitalCost(analysis_id);
+            if (isPipeCapitalCostCalculated(analysis_id)) cost  = getPipeCapitalCost(analysis_id);
+            if (isNetworkResilienceCalculated(analysis_id)) resiliency = getNetworkResilience(analysis_id);
+            if (isHeadViolationCalculated(analysis_id))
+            {
+                min_head_too_low = getMinHeadTooLow(analysis_id);
+                sum_head_too_low = getSumHeadTooLow(analysis_id);
+            }
+            if (isPressureViolationCalculated(analysis_id))
+            {
+                min_pressure_too_low = getMinPressureTooLow(analysis_id);
+                sum_pressure_too_low = getSumPressureTooLow(analysis_id);
+            }
             clear(analysis_id, true);
         }
         t.stop();
@@ -144,10 +172,22 @@ main(int argc, char* argv[])
     boost::timer::auto_cpu_timer t2;
     analysis_id = createAnalysis(opt_file_path.second.string().c_str());
     if (do_log) doLog(analysis_id);
-    for (int j = 0; j < 1000; ++j)
+    for (int j = 0; j < dv_vals_set.size(); ++j)
     {
         int err_code = runEN(analysis_id, dv_vals_set[j].data());
-        double cost = getPipeCapitalCost(analysis_id);
+        if (isPipeCapitalCostCalculated(analysis_id)) cost  = getPipeCapitalCost(analysis_id);
+        if (isNetworkResilienceCalculated(analysis_id)) resiliency = getNetworkResilience(analysis_id);
+        if (isHeadViolationCalculated(analysis_id))
+        {
+            min_head_too_low = getMinHeadTooLow(analysis_id);
+            sum_head_too_low = getSumHeadTooLow(analysis_id);
+        }
+        if (isPressureViolationCalculated(analysis_id))
+        {
+            min_pressure_too_low = getMinPressureTooLow(analysis_id);
+            sum_pressure_too_low = getSumPressureTooLow(analysis_id);
+        }
+        if(do_log) saveAnalysis(analysis_id);
     }
     clear(analysis_id, true);
     t2.stop();

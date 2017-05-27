@@ -37,6 +37,13 @@ readInSolutions(boost::filesystem::path & solutions_file_path, SolutionSet & sol
     namespace phoenix = boost::phoenix;
     //Read in the solutions
     //Now we read the file.
+
+    if (!boost::filesystem::exists(solutions_file_path))
+    {
+        std::cout << "Solutions file did not exist on path: " << solutions_file_path.string() << "\n";
+        return false;
+    }
+
     std::ifstream fin(solutions_file_path.string().c_str(), std::ios_base::in);
     if (fin.is_open())
     {

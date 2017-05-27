@@ -222,4 +222,41 @@ int getAnAnalysis()
     return -1;
 }
 
+bool isPipeCapitalCostCalculated(int analysisID)
+{
+    AnalysisData & analysis = analysis_map[analysisID];
+    return analysis.evaluator->isPipeCapitalCostCalculated();
+}
+
+bool isPressureViolationCalculated(int analysisID)
+{
+    AnalysisData & analysis = analysis_map[analysisID];
+    return analysis.evaluator->isPressureViolationCalculated();
+}
+
+bool isHeadViolationCalculated(int analysisID)
+{
+    AnalysisData & analysis = analysis_map[analysisID];
+    return analysis.evaluator->isHeadViolationCalculated();
+}
+
+bool isNetworkResilienceCalculated(int analysisID)
+{
+    AnalysisData & analysis = analysis_map[analysisID];
+    return analysis.evaluator->isNetworkResilienceCalculated();
+}
+
+int saveAnalysis(int analysisID, const char *save_path)
+{
+    boost::filesystem::path save_fspath(save_path);
+    AnalysisData & analysis = analysis_map[analysisID];
+    return analysis.evaluator->saveAnalysis(analysisID, save_fspath);
+}
+
+int saveAnalysis(int analysisID)
+{
+    AnalysisData & analysis = analysis_map[analysisID];
+    return analysis.evaluator->saveAnalysis(analysisID);
+}
+
 

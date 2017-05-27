@@ -5,7 +5,7 @@
 #include <dlfcn.h>
 #include "ENMultiObjEvaluator.h"
 #include <boost/lexical_cast.hpp>
-
+#include <iomanip>
 
 int EN_ELEVATION;
 int EN_BASEDEMAND;
@@ -325,13 +325,14 @@ ENMultiObjEvaluator::log()
 {
     if (!logging)
     {
-        boost::filesystem::path log_path = working_dir / "calculations.log";
+        boost::filesystem::path log_path = working_dir.parent_path() / "enLink_calcs.log";
         logging = boost::shared_ptr<std::ofstream>(new std::ofstream(log_path.string().c_str()));
         if(!(logging.value()->is_open()))
         {
             logging = boost::none;
             return (false);
         }
+//        this->do_remove_work_dir_on_exit = false; /// NOw saved in directory above working dir.
 
     }
     return (true);
@@ -657,7 +658,10 @@ ENMultiObjEvaluator::setPipeChoices(const int* dvs)
     if (logging)
     {
         **logging << "Pipe option choices:\n";
-        **logging << "LinkID\tStatus\tDiameter\tLength\troughness\tcost\n";
+        **logging << std::setw(20) << std::right << "LinkID" << std::setw(20) << std::right << "dv#"
+                  << std::setw(20) << std::right << "group#" << std::setw(20) << std::right << "choice#"
+                  << std::setw(20) << std::right << "Status" << std::setw(20) << std::right << "Diameter"
+                  << std::setw(20) << std::right << "Length" << std::setw(20) << std::right << "roughnesscost\n";
     }
 
     int dv_number = 0;
@@ -711,7 +715,14 @@ ENMultiObjEvaluator::setPipeChoices(const int* dvs)
                                 pipeChoiceData->roughnessHeight));
                 if(logging)
                 {
-                    **logging << *enLinkId << "\t" << "open" << "\t" << pipeChoiceData->diameter << "\t" << pipelength << "\t" << pipeChoiceData->roughnessHeight << "\t" << pipeChoiceData->cost << "\n";
+                    **logging << *enLinkId << std::setw(20) << std::right <<  dv_number
+                              << std::setw(20) << std::right <<  pipeGroup->first
+                              << std::setw(20) << std::right <<  dv_val
+                              << std::setw(20) << std::right <<  "open"
+                              << std::setw(20) << std::right <<  pipeChoiceData->diameter
+                              << std::setw(20) << std::right <<  pipelength
+                              << std::setw(20) << std::right <<  pipeChoiceData->roughnessHeight
+                              << std::setw(20) << std::right <<  pipeChoiceData->cost << "\n";
                 }
             }
             else
@@ -767,7 +778,10 @@ ENMultiObjEvaluator::evalPipes(const int* dvs)
     if (logging)
     {
         **logging << "Pipe costings:\n";
-        **logging << "PipeID\tCapitalCost\tRepairCost\tRepairEE\tEmbodiedEnergy\ttrenchCost\ttrenchEE\n";
+        **logging << "PipeID" << std::setw(20) << std::right << "CapitalCost"
+                  << std::setw(20) << std::right << "RepairCost"<< std::setw(20) << std::right << "RepairEE"
+                  << std::setw(20) << std::right << "EmbodiedEnergy"<< std::setw(20) << std::right << "trenchCost"
+                  << std::setw(20) << std::right << "trenchEE\n";
     }
 
     while (pipeGroup != endGroup)
@@ -833,7 +847,12 @@ ENMultiObjEvaluator::evalPipes(const int* dvs)
             }
             if (logging)
             {
-                **logging << *enLinkId << "\t" << t_pipeCapitalCost << "\t" << t_pipeRepairCost << "\t" << t_pipeRepairEE << "\t" << t_pipeEmbodiedEnergy << "\t"  << t_trenchingCost << "\t"  << t_trenchEE << "\n" ;
+                **logging << *enLinkId << std::setw(20) << std::right <<  t_pipeCapitalCost
+                          << std::setw(20) << std::right <<  t_pipeRepairCost
+                          << std::setw(20) << std::right <<  t_pipeRepairEE
+                          << std::setw(20) << std::right <<  t_pipeEmbodiedEnergy
+                          << std::setw(20) << std::right <<  t_trenchingCost
+                          << std::setw(20) << std::right <<  t_trenchEE << "\n" ;
             }
 
 
@@ -909,7 +928,7 @@ ENMultiObjEvaluator::evalPressurePenalty()
     if (logging)
     {
         **logging << "Pressure constraint evaluation\n";
-        **logging << "NodeID\tPressure\tconstraintLow\tdeviationLow\tconstraintHigh\tdeviationHigh\n";
+        **logging << "NodeID" << std::setw(20) << std::right << "Pressure" << std::setw(20) << std::right << "constraintLow" << std::setw(20) << std::right << "deviationLow" << std::setw(20) << std::right << "constraintHigh" << std::setw(20) << std::right << "deviationHigh\n";
     }
 
     for (; pConstraint != end; ++pConstraint)
@@ -952,7 +971,7 @@ ENMultiObjEvaluator::evalPressurePenalty()
 
         if (logging)
         {
-            **logging << nodeID  << "\t" << pressure << "\t" << constraintLow << "\t" << deviationLow << "\t" << constraintHigh << "\t" << deviationHigh << "\n";
+            **logging << nodeID   << std::setw(20) << std::right <<  pressure  << std::setw(20) << std::right <<  constraintLow  << std::setw(20) << std::right <<  deviationLow  << std::setw(20) << std::right <<  constraintHigh  << std::setw(20) << std::right <<  deviationHigh << "\n";
         }
     }
 
@@ -991,7 +1010,7 @@ ENMultiObjEvaluator::evalHeadPenalty()
     if (logging)
     {
         **logging << "Head constraint evaluation:\n";
-        **logging << "NodeID\tHead\tconstraintLow\tdeviationLow\tconstraintHigh\tdeviationHigh\n";
+        **logging << "NodeID" << std::setw(20) << std::right << "Head" << std::setw(20) << std::right << "constraintLow" << std::setw(20) << std::right << "deviationLow" << std::setw(20) << std::right << "constraintHigh" << std::setw(20) << std::right << "deviationHigh\n";
     }
 
     for (; hConstraint != end; ++hConstraint)
@@ -1035,7 +1054,7 @@ ENMultiObjEvaluator::evalHeadPenalty()
 
         if (logging)
         {
-            **logging << nodeID  << "\t" << head << "\t" << constraintLow << "\t" << deviationLow << "\t" << constraintHigh << "\t" << deviationHigh << "\n";
+            **logging << nodeID   << std::setw(20) << std::right <<  head  << std::setw(20) << std::right <<  constraintLow  << std::setw(20) << std::right <<  deviationLow  << std::setw(20) << std::right <<  constraintHigh  << std::setw(20) << std::right <<  deviationHigh << "\n";
         }
     }
 
@@ -1069,7 +1088,7 @@ ENMultiObjEvaluator::evalVelocityPenalty()
     if (logging)
     {
         **logging << "Velocity constraint evaluation:\n";
-        **logging << "LinkID\tvelocity\tconstraintHigh\tdeviationHigh\n";
+        **logging << "LinkID" << std::setw(20) << std::right << "velocity" << std::setw(20) << std::right << "constraintHigh" << std::setw(20) << std::right << "deviationHigh\n";
     }
 
 
@@ -1098,7 +1117,7 @@ ENMultiObjEvaluator::evalVelocityPenalty()
 
         if (logging)
         {
-            **logging << linkID << "\t" << velocity << "\t" << constraintHigh << "\t" << deviationHigh << "\n";
+            **logging << linkID  << std::setw(20) << std::right <<  velocity  << std::setw(20) << std::right <<  constraintHigh  << std::setw(20) << std::right <<  deviationHigh << "\n";
         }
     }
     results.sumVelocityTooHigh = sumDeviationHigh;
@@ -1179,7 +1198,7 @@ ENMultiObjEvaluator::evalResiliency()
     if (logging)
     {
         **logging << "Resilience calc: Demand nodes\n";
-        **logging << "nodeID\tCj\tX'\tXmax'\n";
+        **logging << "nodeID" << std::setw(20) << std::right << "Cj" << std::setw(20) << std::right << "X'" << std::setw(20) << std::right << "Xmax'\n";
     }
 
     std::string nodeID;
@@ -1223,7 +1242,7 @@ ENMultiObjEvaluator::evalResiliency()
 
             if (logging)
             {
-                **logging <<  nodeID << "\t" << Cj  << "\t" << X_ << "\t" << Xmax_ << "\n";
+                **logging <<  nodeID  << std::setw(20) << std::right <<  Cj   << std::setw(20) << std::right <<  X_  << std::setw(20) << std::right <<  Xmax_ << "\n";
             }
         }
     }
@@ -1233,7 +1252,7 @@ ENMultiObjEvaluator::evalResiliency()
     if (logging)
     {
         **logging << "\nResilience calc: Reservoirs\n";
-        **logging << "nodeID\tXmax'\n";
+        **logging << "nodeID" << std::setw(20) << std::right << "Xmax'\n";
     }
     for (int i=1; i<=this->node_count; i++)
     {
@@ -1247,7 +1266,7 @@ ENMultiObjEvaluator::evalResiliency()
 
             if(logging)
             {
-                **logging << node.id << "\t" << Xmax_ << "\n";
+                **logging << node.id  << std::setw(20) << std::right <<  Xmax_ << "\n";
             }
         }
     }
@@ -1263,173 +1282,296 @@ ENMultiObjEvaluator::evalResiliency()
 
 double ENMultiObjEvaluator::getPipeCapitalCost()
 {
+    if (logging)
+    {
+        **logging << "\nPipe capital cost: " << this->results.pipeCapitalCost << "\n";
+    }
     return this->results.pipeCapitalCost;
 }
 
 double ENMultiObjEvaluator::getNetworkResilience()
 {
+    if (logging)
+    {
+        **logging << "\nNetwork Resilience: " << this->results.networkResilience << "\n";
+    }
     return this->results.networkResilience;
 }
 
 double ENMultiObjEvaluator::getSumPressureTooHigh()
 {
+    if (logging)
+    {
+        **logging << "\nSum Pressure too high: " << this->results.sumPressureTooHigh << "\n";
+    }
     return this->results.sumPressureTooHigh;
 }
 
 double ENMultiObjEvaluator::getMaxPressureTooHigh()
 {
+    if (logging)
+    {
+        **logging << "\nMaximum Pressure too high: " << this->results.maxPressureTooHigh << "\n";
+    }
     return this->results.maxPressureTooHigh;
 }
 
 double ENMultiObjEvaluator::getSumPressureTooLow()
 {
+    if (logging)
+    {
+        **logging << "\nSum Pressure too low: " << this->results.sumPressureTooLow << "\n";
+    }
     return this->results.sumPressureTooLow;
 }
 
 double ENMultiObjEvaluator::getMinPressureTooLow()
 {
+    if (logging)
+    {
+        **logging << "\nMinimum pressure too low: " << this->results.minPressureTooLow << "\n";
+    }
     return this->results.minPressureTooLow;
 }
 
 double ENMultiObjEvaluator::getSumHeadTooHigh()
 {
+    if (logging)
+    {
+        **logging << "\nSum head too high: " << this->results.sumHeadTooHigh << "\n";
+    }
     return this->results.sumHeadTooHigh;
 }
 
 double ENMultiObjEvaluator::getMaxHeadTooHigh()
 {
+    if (logging)
+    {
+        **logging << "\nMaximum head too high: " << this->results.maxHeadTooHigh << "\n";
+    }
     return this->results.maxHeadTooHigh;
 }
 
 double ENMultiObjEvaluator::getSumHeadTooLow()
 {
+    if (logging)
+    {
+        **logging << "\nSum head too low: " << this->results.sumHeadTooLow << "\n";
+    }
     return this->results.sumHeadTooLow;
 }
 
 double ENMultiObjEvaluator::getMinHeadTooLow()
 {
+    if (logging)
+    {
+        **logging << "\nMinimum head too low: " << this->results.minHeadTooLow << "\n";
+    }
     return this->results.minHeadTooLow;
 }
 
 double ENMultiObjEvaluator::getSumVelocityTooHigh()
 {
+    if (logging)
+    {
+        **logging << "\nSum velocity too high: " << this->results.sumVelocityTooHigh << "\n";
+    }
     return this->results.sumVelocityTooHigh;
 }
 
 double ENMultiObjEvaluator::getMaxVelocityTooHigh()
 {
+    if (logging)
+    {
+        **logging << "\nMaximum velocity too high: " << this->results.maxVelocityTooHigh << "\n";
+    }
     return this->results.maxVelocityTooHigh;
 }
 
 
+bool ENMultiObjEvaluator::isPipeCapitalCostCalculated()
+{
+    return this->params->isCostObj;
+}
 
-///**
-// * hydraulic solver must be run before doing this....
-// * @param filename
-// * @param _outDirPath
-// * @param doSaveReport
-// * @param doUseInpSpecs
-// * @param reportname
-// */
-//void
-//ENMultiObjEvaluator::fileSaver(std::string filename, fs::path & _outDirPath,
-//                    bool doSaveReport, bool doUseInpSpecs, std::string reportname)
-//{
-//    if (!fs::exists(_outDirPath))
-//    {
-//        if (!fs::create_directory(_outDirPath))
-//        {
-//            std::string err =
-//                    "Unable to create output direction in baseEval::fileSaver: "
-//                    + _outDirPath.string();
-//            throw std::runtime_error(err);
-//        }
-//    }
-//
-//    filename = filename + ".inp";
-//    fs::path outEN_inpDir = _outDirPath / filename;
-//
-//    boost::scoped_array< char > inpFileName(
-//            new char[outEN_inpDir.string().size() + 1]); //
-//    strcpy            (inpFileName.get(), outEN_inpDir.c_str());
-//
-//    this->errors(ENsaveinpfile_f(inpFileName.get()), "saving inp file");
-//    if (doSaveReport)
-//    {
-//        this->errors(ENcloseH_f(), "closing hydraulic simulation");
-//        this->errors(ENsaveH_f(), "Saving hydraulics");
-//
-//        if (!doUseInpSpecs)
-//        {
-//            this->errors(ENresetreport(),
-//                         "resetting report formating options");
-//            this->errors(
-//                    ENsetreport("PAGESIZE 0"),
-//                    "Setting pagesize to 0; meaning that no line limit per page is in effect");
-//            if (reportname != "")
-//            {
-//                reportname = reportname + ".rpt";
-//                fs::path outEN_rptDir = _outDirPath / reportname;
-//                std::string outEN_rptStr = "FILE " + outEN_rptDir.string();
-//                boost::scoped_array< char > creportname(
-//                        new char[outEN_rptStr.size() + 1]); //
-//                strcpy                     (creportname.get(), outEN_rptStr.c_str());
-//                this->errors(ENsetreport_f(creportname.get()),
-//                             "name of file which will be written");
-//            }
-//            this->errors(ENsetreport_f("STATUS YES"),
-//                         "hydraulic status report should be generated");
-//            this->errors(ENsetreport_f("SUMMARY YES"),
-//                         "Summary tables will be generated");
-//            this->errors(ENsetreport_f("ENERGY YES"),
-//                         "Energy usage and cost for pumps generated");
-//            this->errors(ENsetreport_f("NODES ALL"),
-//                         "All nodes will be reported on");
-//            this->errors(ENsetreport_f("LINKS ALL"),
-//                         "All links will be reported on");
-//            this->errors(ENsetreport_f("ELEVATION YES"),
-//                         "ELEVATION will be reported on");
-//            this->errors(ENsetreport_f("DEMAND YES"),
-//                         "DEMAND will be reported on");
-//            this->errors(ENsetreport_f("HEAD YES"),
-//                         "HEAD will be reported on");
-//            this->errors(ENsetreport_f("PRESSURE YES"),
-//                         "PRESSURE will be reported on");
-//            this->errors(ENsetreport_f("QUALITY YES"),
-//                         "QUALITY will be reported on");
-//            this->errors(ENsetreport_f("LENGTH YES"),
-//                         "LENGTH will be reported on");
-//            this->errors(ENsetreport_f("DIAMETER YES"),
-//                         "DIAMETER will be reported on");
-//            this->errors(ENsetreport_f("FLOW YES"),
-//                         "FLOW will be reported on");
-//            this->errors(ENsetreport_f("VELOCITY YES"),
-//                         "VELOCITY will be reported on");
-//            this->errors(ENsetreport_f("HEADLOSS YES"),
-//                         "HEADLOSS will be reported on");
-//            //            this->errors(ENsetreport("POSITION YES"),
-//            //                "POSITION will be reported on");
-//            this->errors(ENsetreport_f("SETTING YES"),
-//                         "SETTING will be reported on");
-//            this->errors(ENsetreport_f("F-FACTOR YES"),
-//                         "F-FACTOR will be reported on");
-//        }
-//        this->errors(ENreport_f(), "generating report");
-//
-//        this->close();
-//        this->initialiseEPANET();
-////                     this->errors(ENclose_f(), "closing epanet down");
-////                     errors(
-////                           ENopen_f(ENFile_cstr.get(), reportFile_cstr.get(), binaryFile_cstr.get()),
-////                           "opening EN inp file " + ENFile + " and report file "
-////                           + binaryFile);
-////                     // OPen the hydraulic solution
-////                     this->errors(ENopenH_f(), "opening hydraulic solution");
-//        //        this->evalHydraulicConstraints(results);
-//    }
-//    // OPen and close as ENsaveH frees needed memory in the hydraulic solver... (I think...)
-//
-//}
+bool ENMultiObjEvaluator::isPressureViolationCalculated()
+{
+    return this->params->isPressureConstraint;
+}
+
+bool ENMultiObjEvaluator::isHeadViolationCalculated()
+{
+    return this->params->isHeadConstraint;
+}
+
+bool ENMultiObjEvaluator::isNetworkResilienceCalculated()
+{
+    return this->params->isNetworkResiliencyObj;
+}
+
+
+
+int
+ENMultiObjEvaluator::saveAnalysis(int analysisID, boost::filesystem::path save_path,
+                                  bool doSaveReport, bool doUseInpSpecs)
+{
+    if (params->en_lib_version == OWA_EN3 or params->en_lib_version == Ibanev_EN2)
+    {
+        std::cout << "Saving analysis not yet supported for Epanet 3 or Ibanev's Epanet 2\n";
+        return -1;
+    }
+    boost::filesystem::path save_dir;
+    boost::filesystem::path save_inp_path;
+    boost::filesystem::path save_rpt_path;
+
+    if (save_path == "")
+    {
+        save_path = this->working_dir.parent_path();
+    }
+
+    if(boost::filesystem::is_empty(save_path.parent_path()))
+    {
+        save_path = this->working_dir / save_path;
+    }
+
+    if (save_path.extension() == ".inp" or save_path.extension() == ".rpt")
+    {
+        save_dir = save_path.parent_path();
+        save_inp_path = save_path;
+        save_rpt_path = save_path.parent_path() / (save_path.stem().string() + ".rpt");
+    }
+    else if (boost::filesystem::exists(save_path.parent_path()) && !boost::filesystem::exists(save_path))
+    {
+        // Then filename is the name of the files minus the extension to save.
+        save_dir = save_path.parent_path();
+        save_inp_path = save_path.parent_path() / (save_path.filename().string() + ".inp");
+        save_rpt_path = save_path.parent_path() / (save_path.filename().string() + ".rpt");
+    }
+    else // No filename is givem.
+    {
+        save_dir = save_path;
+        save_inp_path = save_path / ("save_analysisID_" + std::to_string(analysisID) + ".inp");
+        save_rpt_path = save_path / ("save_analysisID_" + std::to_string(analysisID) + ".rpt");
+    }
+
+    if (!boost::filesystem::exists(save_dir))
+    {
+        if (!boost::filesystem::create_directory(save_dir))
+        {
+            std::string err =
+                    "Unable to create output direction in baseEval::fileSaver: "
+                    + save_dir.string();
+            throw std::runtime_error(err);
+        }
+    }
+
+
+    //Get c-array for file name of inp file to save.
+    boost::scoped_array< char > inpFileName(
+            new char[save_inp_path.string().size() + 1]); //
+    strcpy            (inpFileName.get(), save_inp_path.c_str());
+
+    this->errors(ENsaveinpfile_f(inpFileName.get()), "saving inp file");
+    if (doSaveReport)
+    {
+        this->errors(ENcloseH_f(), "closing hydraulic simulation");
+        this->errors(ENsaveH_f(), "Saving hydraulics");
+
+        if (!doUseInpSpecs)
+        {
+            this->errors(ENresetreport_f(),
+                         "resetting report formating options");
+            char pagesizep[] = "PAGESIZE 0";
+            this->errors(
+                    ENsetreport_f(pagesizep),
+                    "Setting pagesize to 0; meaning that no line limit per page is in effect");
+            if (save_rpt_path != "")
+            {
+                boost::scoped_array< char > creportname(
+                        new char[save_rpt_path.string().size() + 1]); //
+                strcpy                     (creportname.get(), save_rpt_path.string().c_str());
+                this->errors(ENsetreport_f(creportname.get()),
+                             "name of file which will be written");
+            }
+            char status[] = "STATUS YES";
+            this->errors(ENsetreport_f(status),
+                         "hydraulic status report should be generated");
+            char summary[] = "SUMMARY YES";
+            this->errors(ENsetreport_f(summary),
+                         "Summary tables will be generated");
+            char energy[] = "ENERGY YES";
+            this->errors(ENsetreport_f(energy),
+                         "Energy usage and cost for pumps generated");
+            char nodes[] = "NODES ALL";
+            this->errors(ENsetreport_f(nodes),
+                         "All nodes will be reported on");
+            char links[] = "LINKS ALL";
+            this->errors(ENsetreport_f(links),
+                         "All links will be reported on");
+            char elevation[]= "ELEVATION YES";
+            this->errors(ENsetreport_f(elevation),
+                         "ELEVATION will be reported on");
+            char demand[] = "DEMAND YES";
+            this->errors(ENsetreport_f(demand),
+                         "DEMAND will be reported on");
+            char head[] = "HEAD YES";
+            this->errors(ENsetreport_f(head),
+                         "HEAD will be reported on");
+            char pressure[] = "PRESSURE YES";
+            this->errors(ENsetreport_f(pressure),
+                         "PRESSURE will be reported on");
+            char quality[]= "QUALITY YES";
+            this->errors(ENsetreport_f(quality),
+                         "QUALITY will be reported on");
+            char length[] = "LENGTH YES";
+            this->errors(ENsetreport_f(length),
+                         "LENGTH will be reported on");
+            char diameter[] = "DIAMETER YES";
+            this->errors(ENsetreport_f(diameter),
+                         "DIAMETER will be reported on");
+            char flow[] = "FLOW YES";
+            this->errors(ENsetreport_f(flow),
+                         "FLOW will be reported on");
+            char velocity[] = "VELOCITY YES";
+            this->errors(ENsetreport_f(velocity),
+                         "VELOCITY will be reported on");
+            char headloss[] = "HEADLOSS YES";
+            this->errors(ENsetreport_f(headloss),
+                         "HEADLOSS will be reported on");
+            //            this->errors(ENsetreport("POSITION YES"),
+            //                "POSITION will be reported on");
+            char setting[] = "SETTING YES";
+            this->errors(ENsetreport_f(setting),
+                         "SETTING will be reported on");
+            char ffactor[] = "F-FACTOR YES";
+            this->errors(ENsetreport_f(ffactor),
+                         "F-FACTOR will be reported on");
+        }
+        this->errors(ENreport_f(), "generating report");
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        // OPen and close as ENsaveH frees needed memory in the hydraulic solver... (I think...)            //
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        if (this->params->en_lib_version == OWA_EN2)
+        {
+            this->open_OWA_EN2();
+        }
+        else if(this->params->en_lib_version == OWA_EN3)
+        {
+            this->open_OWA_EN3();
+        }
+        else if(this->params->en_lib_version == Ibanev_EN2)
+        {
+            this->open_Ibanez_EN2();
+        }
+    }
+    return 0;
+
+
+}
 //
 //void
 //baseEval::fileSaver(std::string filename, std::string _outDirPath,

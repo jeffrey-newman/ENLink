@@ -302,7 +302,17 @@ public:
     double
     getMaxVelocityTooHigh();
 
+    bool
+    isPipeCapitalCostCalculated();
 
+    bool
+    isPressureViolationCalculated();
+
+    bool
+    isHeadViolationCalculated();
+
+    bool
+    isNetworkResilienceCalculated();
 
 //    void
 //    fileSaver(std::string filename, bool doSaveReport,
@@ -313,10 +323,18 @@ public:
 //              bool doSaveReport, bool doUseInpSpecs,
 //              std::string reportname);
 //
-//    void
-//    fileSaver(std::string filename, std::string _outDirPath,
-//              bool doSaveReport, bool doUseInpSpecs,
-//              std::string reportname);
+
+/**
+ * hydraulic solver must be run before doing this....
+ * @param filename
+ * @param _outDirPath
+ * @param doSaveReport
+ * @param doUseInpSpecs
+ * @param reportname
+ */
+    int
+    saveAnalysis(int analysisID, boost::filesystem::path save_path = boost::filesystem::path(""),
+                 bool doSaveReport =true, bool doUseInpSpecs = true);
 //
 //    bool writeHeadViolation;
 
